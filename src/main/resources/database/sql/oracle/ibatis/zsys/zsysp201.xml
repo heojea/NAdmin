@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+    
+<sqlMap namespace="zsysp201">
+    <typeAlias alias="dataMap" type="com.share.themis.common.map.DataMap" />
+    <!-- 코드 체계 정리후 sido_nm과 gugun_nm은 코드로 받는게 낳을듯 -->
+    <select id="selectZipList" resultClass="dataMap">
+        /* zsysp201.selectZip */
+        SELECT T1.POST_NO
+              ,T1.ADDR_NM ADDR_NM_VIEW
+              ,(CASE WHEN T1.ADDR_DIVN_CD='10' THEN T1.SIDO_NM||' '||T1.GUGUN_NM||' '||T1.DONG_NM||' '||T1.BUILDING_NM ELSE T1.ADDR_NM END) AS ADDR_NM
+              ,T1.ZIP_SEQ
+          FROM SET_ZIP_CODE T1
+         WHERE T1.ADDR_DIVN_CD = #addr_divn_cd#
+           <isNotEmpty property="dong_nm">
+           AND T1.DONG_NM LIKE CONCAT(#dong_nm#,'%')
+           </isNotEmpty>
+           <isNotEmpty property="sido_cd">
+           AND T1.SIDO_CD = #sido_cd#
+           </isNotEmpty>
+           <isNotEmpty property="gugun_cd">
+           AND T1.GUGUN_CD = #gugun_cd#
+           </isNotEmpty>
+           <isNotEmpty property="street_nm">
+           AND T1.STREET_NM LIKE CONCAT(#street_nm#,'%')
+           </isNotEmpty>
+         ORDER BY T1.POST_NO, T1.ADDR_NM
+    </select>
+    
+    <!-- 도로명 주소 시/도명 가져오기 -->
+    <select id="selectSidoList" resultClass="dataMap">
+        /* zsysp201.selectSidoList 도로명 주소 시/도명 가져오기*/
+        SELECT SIDO_CD
+              ,SIDO_NM
+          FROM SET_SIDO_CODE
+         ORDER BY ORDER_SEQ, SIDO_CD
+    </select>
+    
+    <!-- 도로명 구군 가져오기 -->
+    <select id="selectGugunList" resultClass="dataMap">
+        /* zsysp201.selectGugunList */
+        SELECT SIDO_CD
+              ,GUGUN_CD
+              ,GUGUN_NM
+          FROM SET_GUGUN_CODE
+           <isNotEmpty property="sido_cd">
+           WHERE SIDO_CD = #sido_cd#
+           </isNotEmpty>
+         ORDER BY ORDER_SEQ, GUGUN_CD
+    </select>
+    
+
+</sqlMap>  

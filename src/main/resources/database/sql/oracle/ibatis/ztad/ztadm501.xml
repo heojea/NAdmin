@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+    
+<sqlMap namespace="ztadm501">
+    <typeAlias alias="dataMap" type="com.share.themis.common.map.DataMap" />
+
+    <select id="selectTempleteList" resultClass="dataMap">
+        /* ztadm501.selectTempleteList */
+        SELECT   T1.TEMP_NO
+                ,T1.TEMP_NM
+                ,T1.TEMP_SUBJECT_NM
+                ,T1.TEMP_CONTENT
+                ,T1.TEMP_TP_CD
+                ,(SELECT CD.CD_NM FROM SET_CODE CD WHERE CD.MAJOR_CD = 'OPR02' AND CD.MINOR_CD = T1.TEMP_TP_CD) AS TEMP_TP_CD_NM
+                ,T1.REG_ID
+                ,TO_CHAR(T1.REG_DATE, 'YYYY-MM-DD') AS REG_DATE
+                ,T1.MOD_ID
+                ,TO_CHAR(T1.MOD_DATE, 'YYYY-MM-DD') AS MOD_DATE
+          FROM SOP_TEMPLATE T1
+          WHERE T1.TEMP_TP_CD = #temp_tp_cd#
+          <isNotEmpty property="temp_nm">
+          AND T1.TEMP_NM LIKE CONCAT('%',CONCAT(#temp_nm#, '%'))
+          </isNotEmpty>
+          
+          ORDER BY T1.TEMP_NO DESC
+    </select>
+    
+    <resultMap class="dataMap" id="selectTempletedataMap">
+	        <result column="TEMP_NO" property="TEMP_NO" />
+	        <result column="TEMP_NM" property="TEMP_NM" />
+	        <result column="TEMP_SUBJECT_NM" property="TEMP_SUBJECT_NM" />
+	        <result column="TEMP_CONTENT" property="TEMP_CONTENT" jdbcType="CLOB" javaType="java.lang.String"/>
+	        <result column="TEMP_TP_CD" property="TEMP_TP_CD" />
+	        <result column="TEMP_TP_CD_NM" property="TEMP_TP_CD_NM" />
+	        <result column="REG_ID" property="REG_ID" />
+	        <result column="REG_DATE" property="REG_DATE" />
+	        <result column="MOD_ID" property="MOD_ID" />
+	        <result column="MOD_DATE" property="MOD_DATE" />
+	</resultMap>
+    
+    <select id="selectTemplete" resultMap="selectTempletedataMap">
+        /* ztadm501.selectTemplete */
+        SELECT   T1.TEMP_NO
+                ,T1.TEMP_NM
+                ,T1.TEMP_SUBJECT_NM
+                ,T1.TEMP_CONTENT
+                ,T1.TEMP_TP_CD
+                ,(SELECT CD.CD_NM FROM SET_CODE CD WHERE CD.MAJOR_CD = 'OPR02' AND CD.MINOR_CD = T1.TEMP_TP_CD) AS TEMP_TP_CD_NM
+                ,T1.REG_ID
+                ,T1.REG_DATE
+                ,T1.MOD_ID
+                ,T1.MOD_DATE
+          FROM SOP_TEMPLATE T1
+         WHERE T1.TEMP_NO = #temp_no#
+    </select>
+    
+    <insert id="insertTemplete" parameterClass="dataMap">
+        /* ztadm501.insertTemplete */
+        INSERT INTO SOP_TEMPLATE (
+             TEMP_NO
+            ,TEMP_NM
+            ,TEMP_SUBJECT_NM
+            ,TEMP_CONTENT
+            ,TEMP_TP_CD
+            ,REG_ID
+            ,REG_DATE
+            ,MOD_ID
+            ,MOD_DATE
+        ) VALUES (
+             #temp_no#
+            ,#temp_nm#
+            ,#temp_subject_nm#
+            ,#temp_content#
+            ,#temp_tp_cd#
+            ,#reg_id#
+            ,SYSDATE
+            ,#mod_id#
+            ,SYSDATE
+        )
+    </insert>
+    
+    <update id="updateTemplete" parameterClass="dataMap">
+        /* ztadm501.updateTemplete */
+        UPDATE SOP_TEMPLATE
+           SET  TEMP_NM         = #temp_nm#
+               ,TEMP_SUBJECT_NM = #temp_subject_nm#
+               ,TEMP_CONTENT    = #temp_content#
+               ,TEMP_TP_CD      = #temp_tp_cd#
+              ,MOD_ID           = #mod_id#
+              ,MOD_DATE         = SYSDATE
+         WHERE TEMP_NO = #temp_no#
+    </update>
+    
+    <delete id="deleteTemplete" parameterClass="dataMap">
+        /* ztadm501.deleteTemplete */
+        DELETE 
+          FROM SOP_TEMPLATE
+         WHERE TEMP_NO = #temp_no#
+    </delete>
+    
+</sqlMap>  

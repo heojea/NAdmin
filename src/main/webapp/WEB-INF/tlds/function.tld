@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<taglib xmlns="http://java.sun.com/xml/ns/j2ee"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee
+    http://java.sun.com/xml/ns/j2ee/web-jsptaglibrary_2_0.xsd"
+    version="2.0">
+
+    <description>TANINE online common functions</description>
+    <tlib-version>1.2</tlib-version>
+    <short-name>TANINECommonFunctions</short-name>
+    <uri>/WEB-INF/tlds/function.tld</uri>
+
+    <function>
+        <name>getString</name>
+        <function-class>com.share.themis.common.util.ConfigUtils</function-class>
+        <function-signature>java.lang.String getString(java.lang.String)</function-signature>
+    </function>
+    <function>
+        <name>getInt</name>
+        <function-class>com.share.themis.common.util.ConfigUtils</function-class>
+        <function-signature>int getInt(java.lang.String)</function-signature>
+    </function>
+    <function>
+        <name>lpad</name>
+        <function-class>com.share.themis.common.util.CommonUtils</function-class>
+        <function-signature>java.lang.String lpad(java.lang.String, int, java.lang.String)</function-signature>
+    </function>
+    <function>
+        <name>rpad</name>
+        <function-class>com.share.themis.common.util.CommonUtils</function-class>
+        <function-signature>java.lang.String rpad(java.lang.String, int, java.lang.String)</function-signature>
+    </function>
+</taglib>

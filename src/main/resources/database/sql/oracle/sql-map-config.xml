@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMapConfig PUBLIC "-//iBATIS.com//DTD SQL Map Config 2.0//EN" "http://www.ibatis.com/dtd/sql-map-config-2.dtd">
+
+<sqlMapConfig>
+    <!-- settings /-->
+    <settings cacheModelsEnabled="true" 
+              lazyLoadingEnabled="true"
+              enhancementEnabled="true" 
+              useStatementNamespaces="true" />
+
+    <!-- Common -->
+    <sqlMap resource="database/sql/oracle/ibatis/common/common.xml"/>
+    
+    <!-- Themis -->
+    <!-- SYS -->
+    <sqlMap resource="database/sql/oracle/ibatis/zsys/zsysm101.xml"/>
+    <sqlMap resource="database/sql/oracle/ibatis/zsys/zsysp201.xml"/>
+    <!-- TAD -->
+    <sqlMap resource="database/sql/oracle/ibatis/ztad/ztadm101.xml"/>
+    <sqlMap resource="database/sql/oracle/ibatis/ztad/ztadm102.xml"/>
+    <sqlMap resource="database/sql/oracle/ibatis/ztad/ztadm103.xml"/>
+    <sqlMap resource="database/sql/oracle/ibatis/ztad/ztadm201.xml"/>
+    <sqlMap resource="database/sql/oracle/ibatis/ztad/ztadm202.xml"/>
+    <sqlMap resource="database/sql/oracle/ibatis/ztad/ztadm301.xml"/>
+    <sqlMap resource="database/sql/oracle/ibatis/ztad/ztadm401.xml"/>
+    <sqlMap resource="database/sql/oracle/ibatis/ztad/ztadm501.xml"/>
+    <sqlMap resource="database/sql/oracle/ibatis/ztad/ztadm601.xml"/>
+    <sqlMap resource="database/sql/oracle/ibatis/ztad/ztadp101.xml"/>
+    <sqlMap resource="database/sql/oracle/ibatis/ztad/ztadp501.xml"/>
+    <!-- OPR -->
+    
+    <!-- custom source -->
+    <sqlMap resource="database/sql/oracle/ibatis/custom/custom100.xml"/>
+
+    <!-- account payment   -->
+    <sqlMap resource="database/sql/oracle/ibatis/account/account100.xml"/>
+    
+    <!-- closeAccount -->
+    <sqlMap resource="database/sql/oracle/ibatis/closeAccount/closeAccount.xml"/>
+    
+</sqlMapConfig> 
+
+ 

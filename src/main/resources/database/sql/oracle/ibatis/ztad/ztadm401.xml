@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+    
+<sqlMap namespace="ztadm401">
+    <typeAlias alias="dataMap" type="com.share.themis.common.map.DataMap" />
+
+    <select id="selectBoardList" resultClass="dataMap">
+        /* ztadm401.selectBoardList */
+        SELECT   T1.BOARD_NO
+                ,T1.BOARD_TP_CD
+                ,(SELECT CD.CD_NM FROM SET_CODE CD WHERE CD.MAJOR_CD = 'OPR01' AND CD.MINOR_CD = T1.BOARD_TP_CD) AS BOARD_TP_CD_NM
+                ,T1.BOARD_NM
+                ,T1.BOARD_ID
+                ,T1.MEM_WRITE_YN
+                ,T1.MEM_COMMENT_YN
+                ,T1.CATEGORY_YN
+                ,T1.EMAIL_REPLY_YN
+                ,T1.SMS_REPLY_YN
+                ,T1.FILE_UPLOAD_YN
+                ,T1.EDITER_YN
+                ,T1.USE_YN
+                ,T1.REG_ID
+                ,TO_CHAR(T1.REG_DATE, 'YYYY-MM-DD') AS REG_DATE
+                ,T1.MOD_ID
+                ,TO_CHAR(T1.MOD_DATE, 'YYYY-MM-DD') AS MOD_DATE
+          FROM SBD_MST T1
+          WHERE 1 = 1
+          <isNotEmpty property="board_tp_cd">
+          AND BOARD_TP_CD = #board_tp_cd#
+          </isNotEmpty>
+          <isNotEmpty property="board_nm">
+          AND BOARD_NM LIKE CONCAT('%',CONCAT(#board_nm#,'%'))
+          </isNotEmpty>
+    </select>
+    
+    <select id="selectBoard" resultClass="dataMap">
+        /* ztadm401.selectBoard */
+        SELECT   T1.BOARD_NO
+                ,T1.BOARD_TP_CD
+                ,(SELECT CD.CD_NM FROM SET_CODE CD WHERE CD.MAJOR_CD = 'OPR01' AND CD.MINOR_CD = T1.BOARD_TP_CD) AS BOARD_TP_CD_NM
+                ,T1.BOARD_NM
+                ,T1.BOARD_ID
+                ,T1.MEM_WRITE_YN
+                ,T1.MEM_COMMENT_YN
+                ,T1.CATEGORY_YN
+                ,T1.EMAIL_REPLY_YN
+                ,T1.SMS_REPLY_YN
+                ,T1.FILE_UPLOAD_YN
+                ,T1.EDITER_YN
+                ,T1.USE_YN
+                ,T1.REG_ID
+                ,T1.REG_DATE
+                ,T1.MOD_ID
+                ,T1.MOD_DATE
+          FROM SBD_MST T1
+         WHERE T1.BOARD_NO = #board_no#
+    </select>
+    
+    <insert id="insertBoard" parameterClass="dataMap">
+        /* ztadm401.insertBoard */
+        INSERT INTO SBD_MST (
+             BOARD_NO
+            ,BOARD_TP_CD
+            ,BOARD_NM
+            ,BOARD_ID
+            ,MEM_WRITE_YN
+            ,MEM_COMMENT_YN
+            ,CATEGORY_YN
+            ,EMAIL_REPLY_YN
+            ,SMS_REPLY_YN
+            ,FILE_UPLOAD_YN
+            ,EDITER_YN
+            ,USE_YN
+            ,REG_ID
+            ,REG_DATE
+            ,MOD_ID
+            ,MOD_DATE
+        ) VALUES (
+             #board_no#
+            ,#board_tp_cd#
+            ,#board_nm#
+            ,#board_id#
+            ,#mem_write_yn#
+            ,#mem_comment_yn#
+            ,#category_yn#
+            ,#email_reply_yn#
+            ,#sms_reply_yn#
+            ,#file_upload_yn#
+            ,#editer_yn#
+            ,#use_yn#
+            ,#reg_id#
+            ,SYSDATE
+            ,#mod_id#
+            ,SYSDATE
+        )
+    </insert>
+    
+    <update id="updateBoard" parameterClass="dataMap">
+        /* ztadm401.updateBoard */
+        UPDATE SBD_MST
+           SET BOARD_NO         = #board_no#
+              ,BOARD_TP_CD      = #board_tp_cd#
+              ,BOARD_NM         = #board_nm#
+              ,BOARD_ID         = #board_id#
+              ,MEM_WRITE_YN     = #mem_write_yn#
+              ,MEM_COMMENT_YN   = #mem_comment_yn#
+              ,CATEGORY_YN      = #category_yn#
+              ,EMAIL_REPLY_YN   = #email_reply_yn#
+              ,SMS_REPLY_YN     = #sms_reply_yn#
+              ,FILE_UPLOAD_YN   = #file_upload_yn#
+              ,EDITER_YN        = #editer_yn#
+              ,USE_YN           = #use_yn#
+              ,MOD_ID           = #mod_id#
+              ,MOD_DATE         = SYSDATE
+         WHERE BOARD_NO = #board_no#
+    </update>
+    
+    <delete id="deleteBoard" parameterClass="dataMap">
+        /* ztadm401.deleteBoard */
+        UPDATE SBD_MST
+           SET USE_YN           = 'N' 
+         WHERE BOARD_NO = #board_no#
+    </delete>
+    
+    <select id="selectCategoryList" resultClass="dataMap">
+        /* ztadm401.selectCategoryList */
+        SELECT   T1.BOARD_NO
+                ,T1.CATEGORY_NO
+                ,T1.CATEGORY_NM
+                ,T1.ORDER_SEQ
+                ,T1.REG_ID
+                ,TO_CHAR(T1.REG_DATE, 'YYYY-MM-DD') AS REG_DATE
+                ,T1.MOD_ID
+                ,TO_CHAR(T1.MOD_DATE, 'YYYY-MM-DD') AS MOD_DATE
+                ,(  SELECT COUNT(*) FROM SBD_BBS S1 WHERE S1.BOARD_NO = T1.BOARD_NO AND S1.CATEGORY_NO = T1.CATEGORY_NO ) AS ARTICLE_CNT
+          FROM SBD_CATEGORY T1
+          WHERE T1.BOARD_NO = #board_no#
+          ORDER BY T1.ORDER_SEQ, T1.CATEGORY_NO
+    </select>
+    
+    <insert id="insertCategory" parameterClass="dataMap">
+        /* ztadm401.insertCategory */
+        INSERT INTO SBD_CATEGORY (
+             BOARD_NO
+            ,CATEGORY_NO
+            ,CATEGORY_NM
+            ,ORDER_SEQ
+            ,REG_ID
+            ,REG_DATE
+            ,MOD_ID
+            ,MOD_DATE
+        ) VALUES (
+             #board_no#
+            ,#category_no#
+            ,#category_nm#
+            ,#order_seq#
+            ,#reg_id#
+            ,SYSDATE
+            ,#mod_id#
+            ,SYSDATE
+        )
+    </insert>
+    
+    <update id="updateCategory" parameterClass="dataMap">
+        /* ztadm401.updateCategory */
+        UPDATE SBD_CATEGORY
+           SET   CATEGORY_NM    = #category_nm#
+                ,ORDER_SEQ      = #order_seq#
+                ,MOD_ID         = #mod_id#
+                ,MOD_DATE       = SYSDATE
+         WHERE BOARD_NO = #board_no#
+         AND CATEGORY_NO = #category_no#
+    </update>
+    
+    <delete id="deleteCategory" parameterClass="dataMap">
+        /* ztadm401.deleteCategory */
+        DELETE FROM SBD_CATEGORY
+         WHERE BOARD_NO = #board_no#
+         AND CATEGORY_NO = #category_no#
+    </delete>
+    
+</sqlMap>  

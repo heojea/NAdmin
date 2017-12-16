@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+    
+<sqlMap namespace="ztadm102">
+    <typeAlias alias="dataMap" type="com.share.themis.common.map.DataMap" />
+    
+
+    <select id="selectAdminRole" resultClass="dataMap">
+        /* ztadm102.selectAdminRole */
+        SELECT T1.ROLE_ID
+              ,T1.ROLE_NM
+              ,T1.ACTIVE_YN
+              ,T1.ROLE_DESC
+              ,T1.REG_ID
+              ,T1.REG_DATE
+              ,T1.MOD_ID
+              ,T1.MOD_DATE
+         FROM SAD_ROLE T1
+        WHERE T1.ROLE_ID = #role_id#
+         ORDER BY T1.ROLE_NM
+    </select>
+    
+    <insert id="insertAdminRole">
+        /* ztadm102.insertAdminRole */
+        INSERT INTO SAD_ROLE (
+            ROLE_ID
+           ,ROLE_NM
+           ,ACTIVE_YN
+           ,ROLE_DESC
+           ,REG_ID
+           ,REG_DATE
+           ,MOD_ID
+           ,MOD_DATE
+        ) VALUES (
+            #role_id#
+           ,#role_nm#
+           ,#active_yn#
+           ,#role_desc#
+           ,#reg_id#
+           ,SYSDATE
+           ,#mod_id#
+           ,SYSDATE
+        )
+    </insert>
+    
+    <update id="updateAdminRole">
+        /* ztadm102.updateAdminRole */
+        UPDATE SAD_ROLE
+           SET ROLE_NM = #role_nm#
+              ,ACTIVE_YN = #active_yn#
+              ,ROLE_DESC = #role_desc#
+              ,MOD_ID = #mod_id#
+              ,MOD_DATE = SYSDATE
+         WHERE ROLE_ID = #role_id# 
+    </update>
+    
+    <delete id="deleteAdminRole">
+        /* ztadm102.deleteAdminRole */
+        DELETE 
+          FROM SAD_ROLE
+         WHERE ROLE_ID = #role_id#
+    </delete>
+    
+    <delete id="deleteAdminMenuAssign">
+        /* ztadm102.deleteAdminMenuAssign */
+        DELETE 
+          FROM SAD_MENU_ASSIGN
+         WHERE ROLE_ID = #role_id# 
+    </delete>
+    
+    <delete id="deleteAdminRoleAssign">
+        /* ztadm102.deleteAdminRoleAssign */
+        DELETE 
+          FROM SAD_ROLE_ASSIGN
+         WHERE ROLE_ID = #role_id# 
+    </delete>
+    
+
+</sqlMap>  

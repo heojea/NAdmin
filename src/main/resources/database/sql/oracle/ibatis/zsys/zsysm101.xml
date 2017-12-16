@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+    
+<sqlMap namespace="zsysm101">
+    <typeAlias alias="dataMap" type="com.share.themis.common.map.DataMap" />
+
+    <select id="selectAdminUser" resultClass="dataMap">
+        /* zsysm101.selectAdminUser */
+        SELECT T1.ADMIN_ID
+              ,T1.ADMIN_NM
+              ,T1.LOGIN_ID
+              ,T1.PWD
+              ,T1.ADMIN_TP_CD
+              ,T1.EMP_NO
+              ,T1.EMAIL
+              ,T1.TEL_NO
+              ,T1.CELL_NO
+              ,T1.ACTIVE_YN
+              ,T1.PWD_ERROR_CNT
+              ,T1.PWD_ERROR_DY
+              ,T1.REG_ID
+              <!-- ,T1.REG_DATE -->
+              ,T1.MOD_ID
+              <!-- ,T1.MOD_DATE -->
+              ,(CASE WHEN SUBSTR(T3.REF1,1,1) = '1' THEN 'Y' ELSE 'N' END) AS CUST_AUTH
+              ,(CASE WHEN SUBSTR(T3.REF1,2,1) = '1' THEN 'Y' ELSE 'N' END) AS LOCA_AUTH
+          FROM SAD_USER T1
+              ,SET_CODE T3
+         WHERE T1.ADMIN_TP_CD = T3.MINOR_CD
+           AND T3.MAJOR_CD = 'ADM01' 
+           AND T1.LOGIN_ID = #login_id#
+           AND T1.ACTIVE_YN = 'Y'
+    </select>
+    
+    <select id="selectCorpUser" resultClass="dataMap">
+        /* zsysm101.selectCorpUser */
+        SELECT T1.ADMIN_ID
+              ,T1.ADMIN_NM
+              ,T1.LOGIN_ID
+              ,T1.PWD
+              ,T4.BIZ_NO
+              ,T1.ADMIN_TP_CD
+              ,T1.EMP_NO
+              ,T1.EMAIL
+              ,T1.TEL_NO
+              ,T1.CELL_NO
+              ,T1.ACTIVE_YN
+              ,T1.PWD_ERROR_CNT
+              ,T1.PWD_ERROR_DY
+              ,T1.REG_ID
+              <!-- ,T1.REG_DATE -->
+              ,T1.MOD_ID
+              <!-- ,T1.MOD_DATE -->
+              ,(CASE WHEN SUBSTR(T3.REF1,1,1) = '1' THEN 'Y' ELSE 'N' END) AS CUST_AUTH
+              ,(CASE WHEN SUBSTR(T3.REF1,2,1) = '1' THEN 'Y' ELSE 'N' END) AS LOCA_AUTH
+          FROM SAD_USER T1
+              ,SET_CODE T3
+              ,SME_CORP T4
+         WHERE T1.ADMIN_TP_CD = T3.MINOR_CD
+           AND T1.CORP_NO = T4.CORP_NO
+           AND T3.MAJOR_CD = 'ADM01'
+           AND T1.LOGIN_ID = #login_id#
+           AND T1.ACTIVE_YN = 'Y'
+           AND T4.BIZ_NO = #biz_no#
+    </select>
+    
+    <select id="selectAuth" resultClass="dataMap">
+        /* zsysm101.selectAuth */
+        SELECT *
+          FROM (
+            SELECT T1.MENU_ID
+                  ,T1.MENU_NM
+                  ,(CASE WHEN T1.REG_VIEW_DIVN_CD != T2.REG_VIEW_DIVN_CD THEN 'N'
+                        WHEN T1.ACTIVE_YN = 'N' THEN 'N'
+                        WHEN T4.ACTIVE_YN = 'N' THEN 'N'
+                   ELSE 'Y' END) AS AUTH               
+                  ,(SELECT MENU_NM FROM SAD_MENU S1 WHERE S1.MENU_ID = T1.UP_MENU_ID) AS DEPTH2_MENU_NM
+                  ,(SELECT (SELECT MENU_NM FROM SAD_MENU S3 WHERE S3.MENU_ID = S4.UP_MENU_ID) FROM SAD_MENU S4 WHERE S4.MENU_ID = T1.UP_MENU_ID) AS DEPTH1_MENU_NM
+                  ,(SELECT (SELECT MENU_ID FROM SAD_MENU S5 WHERE S5.MENU_ID = S6.UP_MENU_ID) FROM SAD_MENU S6 WHERE S6.MENU_ID = T1.UP_MENU_ID) AS DEPTH1_MENU_ID
+              FROM SAD_MENU T1
+              LEFT OUTER JOIN SAD_MENU_ASSIGN T2
+                ON T1.MENU_ID = T2.MENU_ID
+              LEFT OUTER JOIN SAD_ROLE_ASSIGN T3
+                ON T2.ROLE_ID = T3.ROLE_ID
+               AND T3.ADMIN_ID = #admin_id#
+              LEFT OUTER JOIN SAD_ROLE T4
+                ON T3.ROLE_ID = T4.ROLE_ID
+             WHERE T1.LEAF_MENU_YN = 'Y'
+               AND T1.URL = #url#
+         ) V
+         WHERE AUTH = 'Y'
+         AND ROWNUM = 1
+    </select>
+    
+    <!-- 로그인 이력 남기기 -->
+    <insert id="insertSadLoginHis" parameterClass="dataMap">
+        /* zsysm101.insertSadLoginHis 로그인 이력 남기기*/
+        INSERT INTO SAD_LOGIN_HIS (
+        	LOGIN_HIS_SEQ
+           ,LOGIN_DT
+           ,ADMIN_ID
+           ,ADMIN_IP
+           ,LOGOUT_DT
+           ,REG_ID
+           <!-- ,REG_DATE -->
+           ,MOD_ID
+           <!-- ,MOD_DATE -->
+        ) VALUES (
+           SAD_LOGIN_HIS_LOGIN_HIS_SEQ_SE.NEXTVAL
+           ,TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS')
+           ,#admin_id#
+           ,#admin_ip#
+           ,NULL
+           ,#admin_id#
+           <!-- ,SYSDATE -->
+           ,#admin_id#
+           <!-- ,SYSDATE -->
+        )        
+    </insert>
+    
+    <!-- 비밀번호 틀린 횟수 초기화  -->
+    <update id="updateAdminUserPwdErrorDy" parameterClass="dataMap">
+        /* zsysm101.updateAdminUserPwdErrorDy 비밀번호 틀린 횟수 초기화*/
+        UPDATE SAD_USER
+           SET PWD_ERROR_CNT = 0
+              ,PWD_ERROR_DY = NULL
+              ,MOD_ID = #admin_id#
+              <!-- ,MOD_DATE = SYSDATE -->
+         WHERE ADMIN_ID = #admin_id#
+    </update>
+    
+    <!-- 비밀번호 틀린 횟수 추가 -->
+    <update id="updateAdminUserPwdErrorCnt" parameterClass="dataMap">
+        /* zsysm101.updateAdminUserPwdErrorCnt 비밀번호 틀린 횟수 추가*/
+        UPDATE SAD_USER
+           SET PWD_ERROR_CNT = NVL(PWD_ERROR_CNT,0)+1
+              ,PWD_ERROR_DY = TO_CHAR(SYSDATE,'YYYYMMDD')
+              ,MOD_ID = #admin_id#
+              <!-- ,MOD_DATE = SYSDATE -->
+         WHERE ADMIN_ID = #admin_id#
+    </update>
+
+</sqlMap>  

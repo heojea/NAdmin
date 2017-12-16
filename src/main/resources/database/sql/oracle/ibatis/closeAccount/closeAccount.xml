@@ -1,0 +1,306 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+    
+<sqlMap namespace="close">
+    <typeAlias alias="dataMap" type="com.share.themis.common.map.DataMap" />
+    
+    <select id="selectMobileCloseDaoList" resultClass="dataMap">
+		select *
+		from (
+		      select NVL(substr(result309.aclose_dt,0 , 8) , '') AS day_close_date
+		            ,NVL(result309.trans_id, '') AS tr_trans_id
+		            ,NVL(result309.card_id, '') AS card_id
+		            ,NVL(result309.mobile_no, '') AS mobile_no
+		            ,NVL(result309.bef_amt, '0')          AS tr_bef_amt
+		            ,NVL(result309.chg_amt, '0')          AS tr_req_amt
+		            ,NVL(result309.aft_amt, '0')          AS tr_aft_amt
+		            ,NVL(result309.fee, '0')          AS tr_fee_amt
+		            ,NVL( 
+		                 case when (result309.chg_yn = 'Y' and result309.chg_yn != 'NN') then '한국스마트카드 마감'
+		                      when (result309.chg_yn = 'H' and result309.ERR_YN !='NN' ) then '미확인'
+		                      else '마감 오류'
+		                      end 
+		                    ,'')                       
+		              AS tr_result_cd
+		            ,NVL(result309.entpri_cd, '') AS tr_entpri_cd
+		            ,NVL(cd1.cd_nm, '') AS paymethod_nm  
+		            ,NVL(result309.event_cd, '') AS event_cd
+		            ,NVL((substr(result309.req_dt,1,8) ||' ' ||substr(result309.req_dt,9,2) ||':' || substr(result309.req_dt,11,2) || ':' || substr(result309.req_dt,13,2))
+		                    ,'') as  tr_req_dtime 
+		            , result309.entpri_name
+		            ,ROWNUM AS RNUM
+		      from (
+		            select *
+		            from (
+		                    select *
+		                    from charge.tbyih309
+		                    
+		                    where aclose_dt between concat(#start_dt#,'000000') and concat(#end_dt#,'999999')
+		                    <isNotEmpty property="search_card_id">
+		                      and card_id = #search_card_id#
+		                    </isNotEmpty>
+				              <isNotEmpty property="search_trans_id">
+			                      and trans_id = #search_trans_id#
+			                  </isNotEmpty>		
+				              <isNotEmpty property="search_cust_tel">
+			                      and MOBILE_NO = #search_cust_tel#
+			                  </isNotEmpty>			                  
+		                  ) h309
+		        where 1=1
+              	 <isNotEmpty property="search_mtelcm_cd">
+                     and mtelcm_cd = #search_mtelcm_cd#   --  TS00000003(MK100301,SKT) , TS00000005(MK100302 , KT), TS00000007(MK100303  ,LGU)
+                 </isNotEmpty>
+                 <isNotEmpty property="search_tr_result_cd">
+                     <isEqual property="search_tr_result_cd" compareValue="K">
+                     	and h309.chg_yn = 'Y'
+                     	and h309.chg_yn != 'NN'
+                     </isEqual>
+                     <isEqual property="search_tr_result_cd" compareValue="T">
+                     	and (h309.chg_yn = 'H' and h309.ERR_YN !='NN')		        
+                     </isEqual>
+                     <isEqual property="search_tr_result_cd" compareValue="E">
+                     	and (
+                     	     h309.chg_yn != 'Y' 
+                     	     and (h309.chg_yn != 'H' or h309.chg_yn = 'H' and h309.ERR_YN='NN')
+                     	     )
+                     </isEqual>
+                 </isNotEmpty>
+                 
+                 <isNotEmpty property="payMethod_arr">
+		        	and h309.sid in ($payMethod_arr$)  -- 46
+		         </isNotEmpty>
+		              and h309.sid not in ('09','11')
+		              <!-- and (h309.event_cd='' or h309.event_cd is null) -->   
+		          ) result309
+		            LEFT JOIN app_cp_code cd1
+		            ON cd1.cd = result309.sid      AND cd1.group_cd = 'PAYMETHOD'
+		            LEFT JOIN app_cp_code cd2
+		            ON cd2.cd = result309.event_cd AND cd2.group_cd = 'EVENTDTLCD'
+		          order by result309.req_dt desc
+		    )	  
+ 		<isEmpty property="excelType">
+		  	 WHERE RNUM  <![CDATA[>]]>  #startNum# AND RNUM <![CDATA[<=]]>  #endNum#
+		</isEmpty>
+    </select>
+    
+    <select id="selectMobileCloseDaoListCnt" resultClass="dataMap">
+ 		select count(*) as TOT_CNT
+ 		      ,sum(chg_amt) as TOT_AMT
+		from (
+		      select *
+		      from (
+		              select *
+		              from charge.tbyih309
+		              where aclose_dt between concat(#start_dt#,'000000') and concat(#end_dt#,'999999')
+		              <isNotEmpty property="search_card_id">
+	                      and card_id = #search_card_id#
+	                  </isNotEmpty>
+		              <isNotEmpty property="search_trans_id">
+	                      and trans_id = #search_trans_id#
+	                  </isNotEmpty>	   
+		              <isNotEmpty property="search_cust_tel">
+	                      and MOBILE_NO = #search_cust_tel#
+	                  </isNotEmpty>	                                 
+	                  
+		            ) h309
+		      where 1=1
+              	 <isNotEmpty property="search_mtelcm_cd">
+                     and mtelcm_cd = #search_mtelcm_cd#   --  TS00000003(MK100301,SKT) , TS00000005(MK100302 , KT), TS00000007(MK100303  ,LGU)
+                 </isNotEmpty>		
+                 
+                 <isNotEmpty property="search_tr_result_cd">
+                     <isEqual property="search_tr_result_cd" compareValue="K">
+                     	and h309.chg_yn = 'Y'
+                     	and h309.chg_yn != 'NN'
+                     </isEqual>
+                     <isEqual property="search_tr_result_cd" compareValue="T">
+                     	and (h309.chg_yn = 'H' and h309.ERR_YN !='NN')		        
+                     </isEqual>
+                     <isEqual property="search_tr_result_cd" compareValue="E">
+                     	and (
+                     	     h309.chg_yn != 'Y' 
+                     	     and (h309.chg_yn != 'H' or h309.chg_yn = 'H' and h309.ERR_YN='NN')
+                     	     )
+                     </isEqual>
+                 </isNotEmpty>
+		        
+		        <isNotEmpty property="payMethod_arr">
+		        	and h309.sid in ($payMethod_arr$)  -- 46
+		        </isNotEmpty>
+		        
+		        and h309.sid not in ('09','11')
+		        <!-- and (h309.event_cd='' or h309.event_cd is null) -->   
+		    ) result309
+		      LEFT JOIN app_cp_code cd1
+		      ON cd1.cd = result309.sid      AND cd1.group_cd = 'PAYMETHOD'
+		      LEFT JOIN app_cp_code cd2
+		      ON cd2.cd = result309.event_cd AND cd2.group_cd = 'EVENTDTLCD'
+		   order by result309.req_dt desc    
+    <![CDATA[]]>	   
+    </select>
+   
+    <select id="selectCashCardDaoList" resultClass="dataMap">
+		select *
+		from (
+		  select RETURN_VALUE.*
+		        ,ROWNUM AS RNUM
+		  from (
+		  (SELECT /*+index(app_txn_chg IDX_TXN_CHG_01) */ CHG_SER AS CHG_SER -- 거래번호
+		       , P_METHOD  --   거래수단코드
+		       , PG_AMT    --  PG사거래금액
+		       , PG_TR_NO  --  PG사 승인번호
+		       , CARD_ID   --  카드번호
+		       , MOBILE_NO --  핸드폰 번호
+		       , BFR_AMT   --  충전전 금액
+		       , FEE_AMT   --  수수료
+		       , CHG_AMT   --  충전금액
+		       , AFT_AMT   --  충전후 금액
+		       , SIGN2     --  HSM인증여부
+		       , CASE WHEN PG_TR_NO IS NULL THEN '미승인' 
+		              WHEN STATUS IN ('05', 'A5' ) AND PG_TR_NO IS NOT NULL THEN '승인' 
+		              WHEN STATUS IN ('C5', 'D5' ) AND PG_TR_NO IS NOT NULL THEN '승인후취소' 
+		              WHEN STATUS IN ('04' ) AND PG_TR_NO IS NOT NULL THEN '승인' 
+		              ELSE '승인' 
+		         END AS STATUS_TR  -- 승인상태
+		       , CASE WHEN STATUS IN ('04', '14' ) THEN '미확인' 
+		              WHEN STATUS IN ('05', 'A5' ) THEN '성공' 
+		              WHEN STATUS IN ('C5', 'D5' ) THEN '실패' 
+		              ELSE '실패' 
+		         END AS STATUS_CHG  -- 충전상태
+		       , CASE WHEN CHG_CARD LIKE '05' OR CHG_CARD LIKE '15' THEN '신한신용'
+				       WHEN CHG_CARD LIKE '35' THEN '신한체크' 
+				       WHEN CHG_CARD LIKE '01' THEN '우리신용' 
+				       WHEN CHG_CARD LIKE '31' THEN '우리체크' 
+				       WHEN CHG_CARD LIKE '02' OR CHG_CARD LIKE '24' THEN '하나신용' 
+				       WHEN CHG_CARD LIKE '32' THEN '하나체크' 
+				       WHEN CHG_CARD LIKE '09' THEN '롯데신용' 
+				       WHEN CHG_CARD LIKE '39' THEN '롯데체크' 
+				       WHEN CHG_CARD LIKE '03' THEN '외환신용' 
+				       WHEN CHG_CARD LIKE '33' THEN '외환체크' 
+				       WHEN CHG_CARD LIKE '06' THEN '국민신용' 
+				       WHEN CHG_CARD LIKE '36' THEN '국민체크' 
+				       WHEN CHG_CARD LIKE '04' THEN '삼성신용' 
+				       WHEN CHG_CARD LIKE '34' THEN '삼성체크' 
+				       ELSE '비제휴카드' 
+				 END AS CHG_CARD_GUBUN -- 카드구분
+		       , TO_CHAR(TO_DATE(REQ_DH, 'YYYY-MM-DD HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') AS REQ_DH --  거래일시
+		       , CASE WHEN STATUS IN ('C5', 'D5' ) THEN TO_CHAR(TO_DATE(REG_DH, 'YYYY-MM-DD HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') 
+		              ELSE '' 
+		         END AS STATUS_DATE  -- 취소일시
+		       , CHG_CARD
+		       , STATUS
+		       , PG_RES_CD
+		       , PG_RES_MSG
+		     , CASE WHEN substr(req_dh,9,2) <![CDATA[<]]> '15' and substr(REG_DH,9,2) <![CDATA[<]]> '15' and substr(req_dh,7,2) = substr(REG_DH,7,2)  THEN 'KSCC'
+		            WHEN substr(req_dh,9,2) <![CDATA[<]]> '24' and substr(REG_DH,9,2) <![CDATA[<]]> '24' and substr(req_dh,7,2) = substr(REG_DH,7,2)  THEN 'KSCC'
+		            ELSE 'NO_KSCC' 
+		       END AS KSCC_GUBUN
+		       ,'succData' as dataGubun
+		    FROM APP_TXN_CHG
+		   WHERE 
+		     REQ_DH BETWEEN  concat(#start_dt#,'000000') and concat(#end_dt#,'999999')  -- 성공 미확인 일시 기준
+		     AND STATUS NOT IN ('01', '02', '03', 'D1','D2','C1','C2','D5', 'C5' ) -- 성공 미확인 데이터만
+		     AND CHG_CARD IN ('05', '15', '35', '01', '31', '02', '24', '32', '09', '39', '03', '33', '06', '36', '04', '34' )
+		     AND PG_RES_CD NOT IN ('008', 'X' )
+		     AND PG_TR_NO IS NOT NULL
+		     and SIGN2 is not null
+		   )
+		   union all
+		  (SELECT /*+index(app_txn_chg IDX_TXN_CHG_01) */ CHG_SER AS CHG_SER -- 거래번호
+		       , P_METHOD  --   거래수단코드
+		       , PG_AMT    --  PG사거래금액
+		       , PG_TR_NO  --  PG사 승인번호
+		       , CARD_ID   --  카드번호
+		       , MOBILE_NO --  핸드폰 번호
+		       , BFR_AMT   --  충전전 금액
+		       , FEE_AMT   --  수수료
+		       , CHG_AMT   --  충전금액
+		       , AFT_AMT   --  충전후 금액
+		       , SIGN2     --  HSM인증여부
+		       , CASE WHEN PG_TR_NO IS NULL THEN '미승인' 
+		              WHEN STATUS IN ('05', 'A5' ) AND PG_TR_NO IS NOT NULL THEN '승인' 
+		              WHEN STATUS IN ('C5', 'D5' ) AND PG_TR_NO IS NOT NULL THEN '승인후취소' 
+		              WHEN STATUS IN ('04' ) AND PG_TR_NO IS NOT NULL THEN '승인' 
+		              ELSE '승인' 
+		         END AS STATUS_TR  -- 승인상태
+		       , CASE WHEN STATUS IN ('04', '14' ) THEN '미확인' 
+		              WHEN STATUS IN ('05', 'A5' ) THEN '성공' 
+		              WHEN STATUS IN ('C5', 'D5' ) THEN '실패' 
+		              ELSE '실패' 
+		         END AS STATUS_CHG  -- 충전상태
+		       , CASE WHEN CHG_CARD LIKE '05' OR CHG_CARD LIKE '15' THEN '신한신용'
+				       WHEN CHG_CARD LIKE '35' THEN '신한체크' 
+				       WHEN CHG_CARD LIKE '01' THEN '우리신용' 
+				       WHEN CHG_CARD LIKE '31' THEN '우리체크' 
+				       WHEN CHG_CARD LIKE '02' OR CHG_CARD LIKE '24' THEN '하나신용' 
+				       WHEN CHG_CARD LIKE '32' THEN '하나체크' 
+				       WHEN CHG_CARD LIKE '09' THEN '롯데신용' 
+				       WHEN CHG_CARD LIKE '39' THEN '롯데체크' 
+				       WHEN CHG_CARD LIKE '03' THEN '외환신용' 
+				       WHEN CHG_CARD LIKE '33' THEN '외환체크' 
+				       WHEN CHG_CARD LIKE '06' THEN '국민신용' 
+				       WHEN CHG_CARD LIKE '36' THEN '국민체크' 
+				       WHEN CHG_CARD LIKE '04' THEN '삼성신용' 
+				       WHEN CHG_CARD LIKE '34' THEN '삼성체크' 
+				       ELSE '비제휴카드' 
+				 END AS CHG_CARD_GUBUN -- 카드구분
+		       , TO_CHAR(TO_DATE(REQ_DH, 'YYYY-MM-DD HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') AS REQ_DH --  거래일시
+		       , CASE WHEN STATUS IN ('C5', 'D5' ) THEN TO_CHAR(TO_DATE(REG_DH, 'YYYY-MM-DD HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') 
+		              ELSE '' 
+		         END AS STATUS_DATE  -- 취소일시
+		       , CHG_CARD
+		       , STATUS
+		       , PG_RES_CD
+		       , PG_RES_MSG
+		     , CASE WHEN substr(req_dh,9,2) <![CDATA[<]]> '15' and substr(REG_DH,9,2) <![CDATA[<]]> '15' and substr(req_dh,7,2) = substr(REG_DH,7,2)  THEN 'KSCC'
+		            WHEN substr(req_dh,9,2) <![CDATA[<]]> '24' and substr(REG_DH,9,2) <![CDATA[<]]> '24' and substr(req_dh,7,2) = substr(REG_DH,7,2)  THEN 'KSCC'
+		            ELSE 'NO_KSCC' 
+		       END AS KSCC_GUBUN
+		       ,'failData' as dataGubun
+		    FROM APP_TXN_CHG
+		   WHERE 
+		     REG_DH BETWEEN concat(#start_dt#,'000000') and concat(#end_dt#,'999999')  -- 취소데이터 => 취소일시 기준 
+		     AND STATUS IN ('D1','D2','C1','C2','D5', 'C5' ) -- 취소데이터  => 실패 데이터 제외,  취소 데이터만
+		     AND CHG_CARD IN ('05', '15', '35', '01', '31', '02', '24', '32', '09', '39', '03', '33', '06', '36', '04', '34' )
+		     AND PG_RES_CD NOT IN ('008', 'X' )
+		     AND PG_TR_NO IS NOT NULL
+		     and SIGN2 is not null
+		    )
+		   ) RETURN_VALUE
+		)    
+ 		<isEmpty property="excelType">
+		  	 WHERE RNUM  <![CDATA[>]]>  #startNum# AND RNUM <![CDATA[<=]]>  #endNum#
+		</isEmpty>    
+    </select> 
+    
+    <select id="selectCashCardDaoListCnt" resultClass="dataMap">
+		  select count(*) as TOT_CNT
+		        ,sum(case when dataGubun='succData' then '1' else '0' end) as SUCC_TOT_CNT
+		        ,sum(case when dataGubun='failData' then '1' else '0' end) as FAIL_TOT_CNT
+		  from (
+		  (SELECT /*+index(app_txn_chg IDX_TXN_CHG_01) */ 'succData' as dataGubun
+		    FROM APP_TXN_CHG
+		   WHERE 
+		     REQ_DH BETWEEN concat(#start_dt#,'000000') and concat(#end_dt#,'999999')  -- 성공 미확인 일시 기준
+		     AND STATUS NOT IN ('01', '02', '03', 'D1','D2','C1','C2','D5', 'C5' ) -- 성공 미확인 데이터만
+		     AND CHG_CARD IN ('05', '15', '35', '01', '31', '02', '24', '32', '09', '39', '03', '33', '06', '36', '04', '34' )
+		     AND PG_RES_CD NOT IN ('008', 'X' )
+		     AND PG_TR_NO IS NOT NULL
+		     and SIGN2 is not null
+		   )
+		   union all
+		  (SELECT /*+index(app_txn_chg IDX_TXN_CHG_01) */ 'failData' as dataGubun
+		    FROM APP_TXN_CHG
+		   WHERE 
+		     REG_DH BETWEEN concat(#start_dt#,'000000') and concat(#end_dt#,'999999')  -- 취소데이터 => 취소일시 기준 
+		     AND STATUS IN ('D1','D2','C1','C2','D5', 'C5' ) -- 취소데이터  => 실패 데이터 제외,  취소 데이터만
+		     AND CHG_CARD IN ('05', '15', '35', '01', '31', '02', '24', '32', '09', '39', '03', '33', '06', '36', '04', '34' )
+		     AND PG_RES_CD NOT IN ('008', 'X' )
+		     AND PG_TR_NO IS NOT NULL
+		     and SIGN2 is not null
+		    )
+		)
+    </select> 
+</sqlMap>  

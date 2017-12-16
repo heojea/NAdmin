@@ -1,0 +1,434 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+    
+<sqlMap namespace="account100">
+    <typeAlias alias="dataMap" type="com.share.themis.common.map.DataMap" />
+    
+    <!-- account payment List -->
+    <select id="selectpaymentAccountDaoList" resultClass="dataMap">
+		select *
+		from (select oneresult.*
+			      , @RNUM:=@RNUM+1 as RNUM
+			from (select day_close_date -- 거래날짜
+			      , tr_class_nm         -- 구분
+			      , tr_trans_id         -- 거래번호
+			      , tr_order_no         -- 주문번호
+			      , tr_sub_channel_nm   -- 통신사
+			      , mstor_nm            -- 가맹점명
+			      , pay_nm              -- 지급대상업체
+			      , comm_set_nm         -- 수수료명
+			      , pay_commset         -- 수수료율
+			      , case when tr_class_cd = 'TG00000003' then tr_req_amt 
+			             else -tr_req_amt 
+			        end as tr_req_amt          -- 거래금액
+			      , pay_comm            -- 수수료
+			      , CASE WHEN m104.tr_sub_channel_cd = 'TS00000003' THEN
+			                 (CASE m102.entpri_kind WHEN 'A0010001' THEN
+			                 (CASE m104.normalcy_count WHEN 1 THEN
+			                  CEIL( (  m104.tmonet_amt + m104.agency_amt) / 1.1)
+			                  ELSE -CEIL( ABS( m104.tmonet_amt + m104.agency_amt) / 1.1) END) ELSE
+			                  (CASE m104.normalcy_count WHEN 1 THEN CEIL(m104.pay_comm / 1.1)
+			        ELSE -CEIL(ABS(m104.pay_comm) / 1.1) END)  END ) 
+			            WHEN m104.tr_sub_channel_cd = 'TS00000005' AND m104.day_close_date >= '20100401'
+			            THEN (CASE m104.normalcy_count WHEN 1 THEN CEIL(m104.pay_comm / 1.1)
+			             ELSE -CEIL(ABS(m104.pay_comm) / 1.1) END) ELSE
+			            (CASE m104.normalcy_count WHEN 1 THEN CEIL(m104.pay_comm / 1.1)
+			              ELSE -CEIL(ABS(m104.pay_comm) / 1.1) END) END  
+			         AS sup_tmonet -- 공급가
+			      , CASE WHEN m104.tr_sub_channel_cd = 'TS00000003' THEN
+			              (CASE m102.entpri_kind WHEN 'A0010001' THEN
+			              ( (m104.tmonet_amt + m104.agency_amt) - (CASE m104.normalcy_count WHEN 1 THEN
+			              CEIL( (  m104.tmonet_amt + m104.agency_amt) / 1.1) ELSE
+			              -CEIL( ABS( m104.tmonet_amt + m104.agency_amt) / 1.1) END ) )
+			          ELSE ( m104.pay_comm - (CASE m104.normalcy_count WHEN 1 THEN CEIL(m104.pay_comm / 1.1)
+			         ELSE -CEIL(ABS(m104.pay_comm / 1.1) ) END ) ) END ) 
+			         WHEN m104.tr_sub_channel_cd = 'TS00000005' AND m104.day_close_date >= '20100401'
+			         THEN ( m104.pay_comm - (CASE m104.normalcy_count WHEN 1 THEN CEIL(m104.pay_comm / 1.1)
+			            ELSE -CEIL(ABS(m104.pay_comm / 1.1)) END ) )
+			              ELSE m104.pay_comm - (CASE m104.normalcy_count WHEN 1 THEN CEIL(m104.pay_comm / 1.1)
+			                ELSE -CEIL(ABS(m104.pay_comm) / 1.1) END) END
+			          AS vat_tmonet       -- 부가세       
+			    , PAY_AMT             -- 지급금액
+			    , pay_day             -- 지급날짜
+			    , batch_day           -- 데이터생성일
+			    
+			from tbcom104 m104 
+			     LEFT JOIN tbcom102 m102 
+			     ON m104.pay_id = m102.agent_id
+			where 1 = 1
+				<isNotEmpty property="search_closeDate">
+			    	and DAY_CLOSE_DATE between concat(#start_dt#,'') and  concat(#end_dt#,'')  -- 기본 날자조건
+			    </isNotEmpty>
+			    <isEmpty property="search_closeDate">
+			    	and pay_day between concat(#start_dt#,'') and  concat(#end_dt#,'')  -- 기본 날자조건
+			    </isEmpty>
+			    
+			    <isNotEmpty property="search_trClassNm">
+			    	and tr_class_nm = #search_trClassNm#
+			    </isNotEmpty>
+			    
+			    <isNotEmpty property="serach_trTransId">
+			    	and tr_trans_id = #serach_trTransId#
+			    </isNotEmpty>
+			    
+			    <isNotEmpty property="search_trOrderNo">
+			    	and tr_order_no = #search_trOrderNo#
+			    </isNotEmpty>
+			    
+			     <isNotNull property="search_inApp">
+	                <isEqual property="search_inApp" compareValue="true">and comm_set_nm like  concat('인앱' , '%')</isEqual>
+	                <isEqual property="search_inApp" compareValue="false">and comm_set_nm not like  concat('인앱' , '%')</isEqual>
+            	</isNotNull>
+            	
+            	<isNotEmpty property="search_agent_id">
+			    	and m104.pay_id = #search_agent_id#
+			    </isNotEmpty>
+			    
+			    <isNotEmpty property="search_pay_nm">
+			    	and m104.pay_nm like  concat('%', #search_pay_nm# ,'%')
+			    </isNotEmpty>
+			    
+			 
+			  and tr_class_cd in ('TG00000003','TG00000005','TG00000006')   -- 고정 
+			  AND ( ( m104.tr_class_cd = 'TG00000003' AND m104.tr_result_cd = 'K') OR m104.tr_result_cd = 'M') -- 고정
+			 ) oneresult
+		  	  ,(select @RNUM:=0) tmp
+		) tworesult
+		<isEmpty property="excelType">
+		   WHERE RNUM  <![CDATA[>]]>  #startNum# AND RNUM <![CDATA[<=]]>  #endNum#
+		</isEmpty>
+		
+    </select>
+    
+    <!-- account payment List Cnt -->
+    <select id="selectpaymentAccountDaoListCnt" resultClass="dataMap">
+	 select  ifNull(sum(result.TOT_CNT),0) as TOT_CNT
+		      ,ifNull(SUM(result.paySuccCnt    ),0) AS paySuccCnt
+		      ,ifNull(SUM(result.payCanCnt     ),0) AS payCanCnt
+		      ,ifNull(SUM(result.payPartCanCnt ),0) AS payPartCanCnt
+		      ,ifNull(SUM(result.paySuccSum    ),0) AS paySuccSum
+		      ,ifNull(SUM(result.payCanSum     ),0) AS payCanSum
+		      ,ifNull(SUM(result.payPartCanSum ),0) AS payPartCanSum
+		from (
+		      SELECT  count(*) as TOT_CNT
+		             ,SUM(CASE tr_class_nm WHEN '지불'          THEN 1          ELSE 0 END) AS paySuccCnt
+		             ,SUM(CASE tr_class_nm WHEN '지불취소'     THEN 1          ELSE 0 END) AS payCanCnt
+		             ,SUM(CASE tr_class_nm WHEN '지불부분취소' THEN 1          ELSE 0 END) AS payPartCanCnt
+		             ,SUM(CASE tr_class_nm WHEN '지불'         THEN tr_req_amt ELSE 0 END) AS paySuccSum
+		             ,SUM(CASE tr_class_nm WHEN '지불취소'     THEN tr_req_amt ELSE 0 END) AS payCanSum
+		             ,SUM(CASE tr_class_nm WHEN '지불부분취소' THEN tr_req_amt ELSE 0 END) AS payPartCanSum
+		 from tbcom104 m104 
+				     LEFT JOIN tbcom102 m102 
+				     ON m104.pay_id = m102.agent_id
+		 where 1 = 1
+				<isNotEmpty property="search_closeDate">
+			    	and DAY_CLOSE_DATE between concat(#start_dt#,'') and  concat(#end_dt#,'')  -- 기본 날자조건
+			    </isNotEmpty>
+			    <isEmpty property="search_closeDate">
+			    	and pay_day between concat(#start_dt#,'') and  concat(#end_dt#,'')  -- 기본 날자조건
+			    </isEmpty>
+			    
+			     <isNotEmpty property="search_trClassNm">
+			    	and tr_class_nm = #search_trClassNm#
+			    </isNotEmpty>
+			    
+			    <isNotEmpty property="serach_trTransId">
+			    	and tr_trans_id = #serach_trTransId#
+			    </isNotEmpty>
+			    
+			    <isNotEmpty property="search_trOrderNo">
+			    	and tr_order_no = #search_trOrderNo#
+			    </isNotEmpty>
+			    
+			    <isNotNull property="search_inApp">
+	                <isEqual property="search_inApp" compareValue="true">and comm_set_nm like  concat('인앱' , '%')</isEqual>
+	                <isEqual property="search_inApp" compareValue="false">and comm_set_nm not like  concat('인앱' , '%')</isEqual>
+            	</isNotNull>
+            	
+            	<isNotEmpty property="search_agent_id">
+			    	and m104.pay_id = #search_agent_id#
+			    </isNotEmpty>
+			    
+			    <isNotEmpty property="search_pay_nm">
+			    	and m104.pay_nm like  concat('%', #search_pay_nm# ,'%')
+			    </isNotEmpty>
+            	
+				  and tr_class_cd in ('TG00000003','TG00000005','TG00000006')   -- 고정 
+				  AND ( ( m104.tr_class_cd = 'TG00000003' AND m104.tr_result_cd = 'K') OR m104.tr_result_cd = 'M') -- 고정
+		      group by tr_class_nm
+		) result 
+    </select>
+    
+     
+    <!-- agent list -->
+    <select id="selectAgentDaoList" resultClass="dataMap">
+		select result.*
+		from (
+			SELECT	IFNULL(tmp.agent_nm, '') AS agent_nm
+					, IFNULL(tmp.agent_id, '') AS agent_id
+					, IFNULL(tmp.cp_id, '') AS cp_id
+			        , @RNUM:=@RNUM+1 as RNUM
+					FROM (
+			          SELECT agent_id AS agent_id
+			               , agent_nm AS agent_nm
+			               , pg_id AS pg_id
+			               , rep_agent_id AS rep_agent_id
+			               , '' AS cp_id
+			               , samsung_agent_cd AS samsung_agent_cd
+			            FROM tbcom102
+			           WHERE (pg_id is null
+			              OR TRIM(pg_id) = '')
+			             AND (rep_agent_id is null
+			              OR TRIM(rep_agent_id) = '')
+			           UNION
+			          SELECT m102a.agent_id AS agent_id
+			               , m102a.agent_nm AS agent_nm
+			               , m102a.pg_id AS pg_id
+			               , m102a.rep_agent_id AS rep_agent_id
+			               , m102a.cp_id AS cp_id
+						   , m102a.samsung_agent_cd AS samsung_agent_cd
+			            FROM tbcom102 m102a
+			               , tbcom102 m102b
+			           WHERE m102a.pg_id = m102b.agent_id
+			              OR m102a.rep_agent_id = m102b.agent_id
+			       ) tmp
+             		,(select @RNUM:=0) rTmp
+			 WHERE tmp.agent_id != '1111111111123'
+			     <isNotEmpty property="search_agent_nm">
+			 	    AND tmp.agent_nm LIKE CONCAT('%', #search_agent_nm#, '%')
+			    </isNotEmpty>
+			    <isNotEmpty property="search_cp_id">
+					AND tmp.cp_id LIKE CONCAT('%', #search_cp_id#, '%')
+				</isNotEmpty>
+			<![CDATA[
+				 ORDER BY tmp.agent_nm ASC
+			]]>
+			
+		) result
+		WHERE RNUM  <![CDATA[>]]>  #startNum# AND RNUM <![CDATA[<=]]>  #endNum#
+     </select>
+     
+         <!-- agent list -->
+    <select id="selectAgentDaoListCnt" resultClass="dataMap">
+		SELECT    count(*) as TOT_CNT
+			  FROM (
+			          SELECT agent_id AS agent_id
+			               , agent_nm AS agent_nm
+			               , pg_id AS pg_id
+			               , rep_agent_id AS rep_agent_id
+			               , '' AS cp_id
+			               , samsung_agent_cd AS samsung_agent_cd
+			            FROM tbcom102
+			           WHERE (pg_id is null
+			              OR TRIM(pg_id) = '')
+			             AND (rep_agent_id is null
+			              OR TRIM(rep_agent_id) = '')
+			           UNION
+			          SELECT m102a.agent_id AS agent_id
+			               , m102a.agent_nm AS agent_nm
+			               , m102a.pg_id AS pg_id
+			               , m102a.rep_agent_id AS rep_agent_id
+			               , m102a.cp_id AS cp_id
+						   , m102a.samsung_agent_cd AS samsung_agent_cd
+			            FROM tbcom102 m102a
+			               , tbcom102 m102b
+			           WHERE m102a.pg_id = m102b.agent_id
+			              OR m102a.rep_agent_id = m102b.agent_id
+			       ) tmp
+		 WHERE tmp.agent_id != '1111111111123'
+		 <isNotEmpty property="search_agent_nm">
+			AND tmp.agent_nm LIKE CONCAT('%', #search_agent_nm#, '%')
+		</isNotEmpty>
+		<isNotEmpty property="search_cp_id">
+			AND tmp.cp_id LIKE CONCAT('%', #search_cp_id#, '%')
+		</isNotEmpty>
+     </select>
+     
+     
+    <!-- 상품권 정산내역 list -->
+    <select id="selectGiftCardDaoList" resultClass="dataMap">
+		select reg_dh
+		      ,prod_nm
+		      ,Tm_Cp_Nm as pay_com_cd
+		      ,prod_nm_cnt
+		      ,amt
+		      ,cancel_prod_nm_cnt
+		      ,cancelAmt
+		      ,tm_fee
+		      ,store_member_fee
+		      ,provider_price
+		      ,surtax
+		      ,cost_press
+		      ,req_amt
+		      ,discount_pay
+		      , round(NVL((nvl(amt,0) - nvl(req_amt,0)) / DECODE(amt, 0, NULL, amt), 0),2) as discount_rate  -- 할인률
+		from ( select DISTINCT *
+				from ( 
+				      select nvl(reg_dh  ,'') as reg_dh
+				           , nvl(prod_nm ,'') as prod_nm 
+				           , nvl(Tm_Cp_Nm  ,'') as Tm_Cp_Nm  
+			               , sum(case cancelResult when '1'  then '1' else '-1' end) as prod_nm_cnt
+			               , sum(case cancelResult when '0'  then '1' else '0' end) as cancel_prod_nm_cnt
+			               , sum(case cancelResult when '1'  then amt else -amt end) as amt
+			               , sum(case cancelResult when '0'  then amt else 0 end) as cancelAmt
+					       , tm_fee 
+			               , sum(case cancelResult when '1'  then store_member_fee else -store_member_fee end) as store_member_fee
+			               , sum(case cancelResult when '1'  then provider_price else -provider_price end) as provider_price
+			               , sum(case cancelResult when '1'  then surtax else -surtax end) as surtax
+			               , sum(case cancelResult when '1'  then cost_press else -cost_press end) as cost_press
+			               , sum(case cancelResult when '1'  then req_amt else -req_amt end) as req_amt
+			               , sum(case cancelResult when '1'  then discount_pay else -discount_pay end) as discount_pay
+				      from (
+				                select substr(apg.reg_dh,1,8) as reg_dh             -- 거래 일자
+				                     , nvl(apg.prod_nm,'')  as prod_nm              -- 상품명
+				                     , nvl(paycom.pay_com_cd,'')  as pay_com_cd     -- 지급 가맹점
+				                     , nvl(apg.amt,'') as amt                       -- 액면금액               
+				                     , nvl(paycom.tm_fee,'0.00') as tm_fee          -- 판매 수수료
+				                     , nvl(apg.tpay_ser,'') as tpay_ser
+				                     ,((apg.amt) * nvl(tm_fee,0)) / 100 as store_member_fee            -- 가맹점 수수료
+				                     ,((apg.amt) * nvl(paycom.tm_fee,0)) / 100 / 1.1 as provider_price -- 공급가
+				                     ,((apg.amt) * nvl(paycom.tm_fee,0)) / 100 - ((apg.amt) * nvl(paycom.tm_fee,0)) / 100 / 1.1  as surtax -- 부가세
+				                     , (apg.amt) - ((apg.amt) * nvl(paycom.tm_fee,0)) / 100  as cost_press  -- 대금 지급금
+				                     , atPay.req_amt  as req_amt                                            --판매금액
+				                     , ((apg.amt - atPay.req_amt) / apg.amt) as discount_rate               -- 할인률
+				                     , apg.amt - atPay.req_amt as discount_pay                              --할인금액 
+		                         
+		                         , substr(apg.cancel_date,1,8) as cancel_date       						-- 취소 날짜
+		                         ,cancel_result   															-- 취소 0000  성공 null
+		                         ,cancelResult
+		                         , nvl(Paycom.Tm_Cp_Nm,'')  as Tm_Cp_Nm     -- 지급 가맹점
+				                FROM (
+				                       select A.*
+		                          ,'1' as cancelResult
+		                      from app_tmshop_giftcode A
+		                      where 1=1
+		                      <isNotEmpty property="start_dt">
+						    	and reg_dh between concat(#start_dt#,'000000') and  concat(#end_dt#,'999999')  -- 기본 날자조건
+						      </isNotEmpty>
+							 <isNotEmpty property="search_prod_nm">
+					        	and PROD_CD  = #search_prod_nm#
+							 </isNotEmpty>
+		                      union all
+		                      select TPAY_SER      
+		                            ,GIFT_CODE     
+		                            ,AMT           
+		                            ,VALID_DH      
+		                            ,MOBILE_NO     
+		                            ,CARD_ID       
+		                            ,PAY_COM_CD    
+		                            ,PROD_CD       
+		                            ,PROD_NM       
+		                            ,APPV_NO       
+		                            ,CANCEL_DATE as REG_DH        
+		                            ,CANCEL_DATE   
+		                            ,CANCEL_USER   
+		                            ,CANCEL_RESULT 
+		                            ,'0' as cancelResult
+		                      from app_tmshop_giftcode
+		                      where 1=1
+		                      <isNotEmpty property="start_dt">
+						    	and CANCEL_DATE between concat(#start_dt#,'000000') and  concat(#end_dt#,'999999')  -- 기본 날자조건
+						      </isNotEmpty>
+						     
+							 <isNotEmpty property="search_prod_nm">
+					        	and PROD_CD  = #search_prod_nm#
+							 </isNotEmpty>
+		                        and cancel_result = '0000'
+				                     ) apg
+				                     left join app_tmshop_paycom paycom
+				                     on apg.pay_com_cd = paycom.pay_com_cd
+				                     left join app_tmshop_procode cp 
+				                     on apg.prod_cd = cp.prod_cd
+				                     left join app_tmshop_pay atPay
+				                     on apg.tpay_ser = atPay.tpay_ser
+				             )
+				          GROUP BY ROLLUP(Tm_Cp_Nm , prod_nm , reg_dh  , tm_fee)
+				    )  
+				    WHERE 1=1
+				     <isNotEmpty property="search_pay_com_cd">
+			        	and Tm_Cp_Nm = #search_pay_com_cd#
+					 </isNotEmpty>
+		    )
+		    where (reg_dh is not null and tm_fee is not null)
+		      or  prod_nm is null
+		      or  Tm_Cp_Nm is null
+		    order by  reg_dh desc ,  tm_fee desc ,    prod_nm desc , Tm_Cp_Nm desc                                         
+    </select>
+    
+    <!-- 상품권 정산내역 list Cnt -->
+    <select id="selectGiftCardDaoListCnt" resultClass="dataMap">
+		select count(*) as TOT_CNT
+		from ( 
+		      select nvl(days  ,'') as days
+		           , nvl(prod_nm ,'') as prod_nm 
+		           , nvl(com_nm  ,'') as com_nm  
+		           , count(prod_nm) as prod_nm_cnt
+		           , sum(amt) as amt
+		           , tm_fee 
+		           , sum(store_member_fee) as store_member_fee
+		           , sum(provider_price) as provider_price
+		           , sum(surtax) as surtax
+		           , sum(cost_press) as cost_press
+		           , sum(req_amt) as req_amt
+		           , sum(discount_pay) as discount_pay
+		      from (
+		                select substr(apg.reg_dh,1,8) as days       -- 거래 일자
+		                     , nvl(apg.prod_nm,'')  as prod_nm      -- 상품명
+		                     , nvl(paycom.com_nm,'')  as com_nm     -- 지급 가맹점
+		                     , nvl(apg.amt,'') as amt               -- 액면금액               
+		                     , nvl(paycom.tm_fee,'') as tm_fee      -- 판매 수수료
+		                     , nvl(apg.tpay_ser,'') as tpay_ser
+		                     ,((apg.amt) * nvl(tm_fee,0)) / 100 as store_member_fee -- 가맹점 수수료
+		                     ,((apg.amt) * nvl(paycom.tm_fee,0)) / 100 / 1.1 as provider_price -- 공급가
+		                     ,((apg.amt) * nvl(paycom.tm_fee,0)) / 100 - ((apg.amt) * nvl(paycom.tm_fee,0)) / 100 / 1.1  as surtax -- 부가세
+		                     , (apg.amt) - ((apg.amt) * nvl(paycom.tm_fee,0)) / 100  as cost_press  -- 대금 지급금
+		                     , atPay.req_amt  as req_amt                                            --판매금액
+		                     , ((apg.amt - atPay.req_amt) / apg.amt) as discount_rate               -- 할인률
+		                     , apg.amt - atPay.req_amt as discount_pay                              --할인금액 
+		                FROM (
+		                        select *
+		                        from app_tmshop_giftcode
+		                        where reg_dh like '201406%'
+		                          and tpay_ser not in(
+		                            SELECT b.tpay_ser
+		                            from app_tmshop_giftcode b
+		                            where cancel_date like '201406%' 
+		                            and cancel_result = '0000'
+		                          )
+		                     ) apg
+		                     left join app_tmshop_paycom paycom
+		                     on apg.pay_com_cd = paycom.pay_com_cd
+		                     left join app_tmshop_procode cp 
+		                     on apg.prod_cd = cp.prod_cd
+		                     left join app_tmshop_pay atPay
+		                     on apg.tpay_ser = atPay.tpay_ser
+		             )
+		          GROUP BY ROLLUP(com_nm , prod_nm , days , tm_fee)
+		          having not (days is null and prod_nm is not null or (days is not null and tm_fee is null)) 
+		          order by  days desc ,  tm_fee desc ,    prod_nm desc , com_nm desc                                
+		    )          
+    </select>    
+    
+    <select id="selectPayComCdAjaxCallList" resultClass="dataMap">
+    	 select Distinct TM_CP_NM
+	   	   from App_Tmshop_Paycom
+	    group by tm_cp_nm
+    </select>
+    
+    <select id="selectProdNmAjaxCallList" resultClass="dataMap">
+    select *
+		from APP_TMSHOP_PROCODE appTmShop
+        ,(
+          select Pay_Com_Cd
+          from App_Tmshop_Paycom
+          where 1=1
+          <isNotEmpty property="search_pay_com_cd">
+        	and tm_cp_nm = #search_pay_com_cd#
+		 </isNotEmpty>
+          ) paycom
+    where Apptmshop.Pay_Com_Cd = Paycom.Pay_Com_Cd    
+    </select>
+    
+</sqlMap>  

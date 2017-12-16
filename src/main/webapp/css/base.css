@@ -1,0 +1,182 @@
+
+@charset "UTF-8";
+
+/* body base style */
+html, body {
+    height:100%;
+    margin: 0;
+    padding: 0;
+    /* font-family: Dotum, "돋움"; */
+    font:bold 24pt '바탕'; 
+}
+/* form base style */
+form, dl, dt, dd, p, iframe { margin:0; padding:0; }
+ul, ol, li { margin:0; padding:0; list-style:none; }
+img { border: 0 none; }
+h1, h2, h3, h4, h5, h6 { margin:0; padding:0; }
+
+/* font base style */
+th, td {
+    color: #555555;
+    font-size:12px;
+    line-height:18px;
+    font-family: Dotum, "돋움";
+}
+p, div, select, input, textarea {
+    color: #555555;
+    font-size:12px;
+    line-height:18px;
+    font-family: Dotum, "돋움";
+}
+
+/* link base style */
+a:link, a:active, a:visited {
+    color: #555555;
+    text-decoration: none;
+}
+a:hover {
+    color: #ff5400;
+    text-decoration: underline;
+}
+
+/* form style */
+select {
+    vertical-align:middle;
+    font-size:12px;
+    height: 21px;
+    width: 159px;
+}
+
+input.text {
+    font-size:12px;
+    border-left:1px solid #c9c9c9;
+    border-top:1px solid #c9c9c9;
+    border-right:1px solid #dfdfdf;
+    border-bottom:1px solid #dfdfdf;
+    background-color:#fff;
+    height:16px;
+    padding:2px 3px 0 3px;
+    line-height:14px;
+    vertical-align:middle;
+}
+input.text2 {
+    font-size:12px;
+    border-left:1px solid #c9c9c9;
+    border-top:1px solid #c9c9c9;
+    border-right:1px solid #dfdfdf;
+    border-bottom:1px solid #dfdfdf;
+    background-color:#f9f1d6;
+    height:16px;
+    padding:2px 3px 0 3px;
+    line-height:14px;
+    vertical-align:middle;
+}
+textarea.text {
+    font-size:12px;
+    border-left:1px solid #c9c9c9;
+    border-top:1px solid #c9c9c9;
+    border-right:1px solid #dfdfdf;
+    border-bottom:1px solid #dfdfdf;
+    background-color:#fff;
+    line-height:18px;
+    padding:2px 2px 0 2px;
+    vertical-align:middle;
+    overflow:auto;
+}
+input.file {
+    font-size:12px;
+    border-left:1px solid #c9c9c9;
+    border-top:1px solid #c9c9c9;
+    border-right:1px solid #dfdfdf;
+    border-bottom:1px solid #dfdfdf;
+    background-color:#fff;
+    height:20px;
+    vertical-align:middle;
+}
+input.center {
+    text-align: center;
+}
+
+
+.hand { cursor: pointer; }
+.middle { vertical-align:middle}
+.clear { clear:both; height:0; font-size:0p; line-height:0px; }
+/* margin */
+.marginT5 { margin-top:5px; }
+.marginT10 { margin-top:10px; }
+.marginT15 { margin-top:15px; }
+.marginT20 { margin-top:20px; }
+.marginT25 { margin-top:25px; }
+
+.marginB10 { margin-bottom:10px; }
+/* padding */
+.paddingT5 { padding-top:5px; }
+.paddingT10 { padding-top:10px; }
+.paddingT15 { padding-top:15px; }
+.paddingT20 { padding-top:20px; }
+.paddingT25 { padding-top:25px; }
+
+.left { text-align:left; }
+.right { text-align:right; }
+
+
+input.check {
+    vertical-align:middle;
+}
+input.none {
+    font-size:12px;
+    border-left:0px solid #c9c9c9;
+    border-top:0px solid #c9c9c9;
+    border-right:0px solid #dfdfdf;
+    border-bottom:0px solid #dfdfdf;
+    background-color:#fff;
+    height:16px;
+    padding:2px 3px 0 3px;
+    line-height:14px;
+    vertical-align:middle;
+}
+.onlynum { 
+    font-size:12px;
+    border-left:0px solid #c9c9c9;
+    border-top:0px solid #c9c9c9;
+    border-right:0px solid #dfdfdf;
+    border-bottom:0px solid #dfdfdf;
+    background-color:#fff;
+    height:16px;
+    padding:2px 3px 0 3px;
+    line-height:14px;
+    vertical-align:middle;
+    ime-mode: disabled;
+    text-align:right;
+}
+.inputRead { 
+    border-left:1px solid #c9c9c9;
+    border-top:1px solid #c9c9c9;
+    border-right:1px solid #dfdfdf;
+    border-bottom:1px solid #dfdfdf;
+    color:#999999;
+    height:16px;
+    padding:2px 3px 0 3px;
+    line-height:14px;
+    vertical-align:middle;
+    background-color:#f9f9f9;
+    cursor: default;
+}
+.point { color: #ff5400; }  
+
+/*  Waiting */
+div.waiting {
+    position:absolute;
+    top:50%;
+    left:50%;
+    width:290px;
+    height:160px;
+    margin-left:-145px;
+    margin-top:-80px;
+    background:url('../images/common/waiting_bg.gif') no-repeat left 0;
+    text-align:center;
+    display:none;
+}
+div.waiting img {
+    margin-top:80px;
+}

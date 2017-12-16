@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE sqlMap
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+    
+<sqlMap namespace="ztadp101">
+    <typeAlias alias="dataMap" type="com.share.themis.common.map.DataMap" />
+	
+	<!-- 현재 비밀번호 조회 -->
+	<select id="selectSadUserPwd" resultClass="dataMap">
+        /* ztadp101.selectSadUserPwd */
+        SELECT PWD
+          FROM SAD_USER
+         WHERE 1=1
+           AND ADMIN_ID = #admin_id# 
+    </select>
+	
+	<!-- 비밀번호 변경 -->
+	<update id="updateSadUserPwd" parameterClass="dataMap">
+        /* ztadp101.updateSadUserPwd */
+        UPDATE SAD_USER
+           SET PWD = #pwd#
+             , MOD_ID = #user_id#
+             , MOD_DATE = SYSDATE
+         WHERE ADMIN_ID = #admin_id#
+    </update>
+</sqlMap>

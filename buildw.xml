@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<project name="myShop" default="UploadAll" basedir="."> 
+        <!-- property 파일 지정 --> 
+        <property file="ant.properties" /> 
+        <!-- property 설정 --> 
+        <property name="src.home" value="${basedir}/src" /> 
+        <property name="web.home" value="${basedir}" /> 
+        <property name="build.home" value="${basedir}/webapps" /> 
+        <property name="view.home" value="${build.home}/WEB-INF" />
+        <property name="tar.home" value="${basedir}/tar/webapps" />
+        
+		<!-- sftp upload properties -->
+	    <property name="sftp.server" value="119.205.200.77"/>
+	    <property name="sftp.port" value="22" />
+	    <property name="sftp.home.dir" value="/webstore/User/aid_jyh/"/>
+	    <property name="sftp.userid" value="aid_jyh"/>
+	    <property name="sftp.pw" value="heojea1234"/>
+	    <taskdef name="ssh" classname="com.sshtools.ant.Ssh" />
+	
+	    <!-- compile과 javadoc에서 사용할 classpath --> 
+        <path id="compile.classpath"> 
+                <fileset dir="${catalina.home}/lib"> 
+                        <include name="servlet-api.jar" /> 
+                        <include name="jsp-api.jar" /> 
+                </fileset> 
+                <fileset dir="${web.home}/src/main/webapp/WEB-INF/lib"> 
+                        <include name="*.jar" /> 
+                </fileset> 
+        </path> 
+	
+        <!-- build 디렉터리와 dist 디렉터리 삭제 --> 
+        <target name="clean"> 
+                <delete dir="${build.home}" /> 
+                <delete dir="${tar.home}" />
+        	    <delete dir="${basedir}/tar" />
+        	
+        </target>
+	
+        <!-- web 컨텐츠들을 build 디렉터리로 복사 --> 
+        <target name="prepare" depends="clean"> 
+                <mkdir dir="${build.home}" />
+                <mkdir dir="${tar.home}" /> 
+                <mkdir dir="${build.home}/WEB-INF" /> 
+                <mkdir dir="${build.home}/WEB-INF/classes" />
+                <mkdir dir="${build.home}/WEB-INF/views" />
+                <mkdir dir="${build.home}/WEB-INF/classes/database" />
+                 
+  
+                <copy todir="${build.home}/WEB-INF/views"> 
+                    <fileset dir="${src.home}/main/webapp/WEB-INF/views" />
+                </copy> 
+                
+                <copy todir="${build.home}/WEB-INF/classes/database"> 
+                    <fileset dir="${src.home}/main/resources/database" />
+                </copy>
+        </target>
+        
+         
+        <!-- src 의 클래스들을 build 디렉터리로 컴파일 --> 
+        <target name="build" depends="prepare"> 
+                <mkdir dir="${build.home}/WEB-INF/classes" /> 
+                <javac srcdir="${src.home}" 
+                       destdir="${build.home}/WEB-INF/classes" 
+                       debug="${compile.debug}" 
+                       deprecation="${compile.deprecation}"
+                       target="1.6" 
+                       optimize="${compile.optimize}" encoding="utf-8" failonerror="yes"                       > 
+                        <classpath refid="compile.classpath" /> 
+                </javac>
+        </target> 
+        <!-- work 디렉터리 클린 --> 
+        
+        <target name="delete" depends="build">
+        	<copy todir="${tar.home}"> 
+				 <fileset dir="${build.home}">
+
+				 	<include name="WEB-INF/classes/com/share/common/util/EmailService.class"            />
+				 	<include name="WEB-INF/classes/com/share/hippo/service/CorpTmoneyService.class"            />
+
+				 	<!-- 
+				 	<include name="WEB-INF/views/close/cashCard.jsp"            />
+				 	<include name="WEB-INF/classes/database/sql/oracle/ibatis/closeAccount/closeAccount.xml"            />
+				 	<include name="WEB-INF/classes/com/share/closeAccount/controller/CashCardController.class"            />
+				 	<include name="WEB-INF/classes/com/share/closeAccount/dao/CashCardDao.class"            />
+				 	<include name="WEB-INF/classes/com/share/closeAccount/service/CashCardService.class"            />
+				 	<include name="WEB-INF/classes/com/share/closeAccount/excelTemplete/CashCardExcelTemple.class"            />
+				 	-->
+				 	
+					<!--<include name="WEB-INF/classes/database/sql/oracle/ibatis/account/account100.xml"                          />-->           
+					<!-- <include name="WEB-INF/classes/com/share/deasa/service/PgAccountDataService.class"                  />           
+					<include name="WEB-INF/classes/com/share/deasa/excelTemplete/pgAccountDataMobileExcelTemple.class"  />
+					<include name="WEB-INF/classes/com/share/deasa/excelTemplete/pgAccountDataKcpExcelTemple.class"     />
+					<include name="WEB-INF/classes/database/sql/oracle/ibatis/deasa/deasa200.xml"                       />
+					<include name="WEB-INF/views/deasa/pgAccountData.jsp"                                               />
+					<include name="WEB-INF/classes/com/share/deasa/controller/HSMController.class"                      />
+					<include name="WEB-INF/classes/com/share/deasa/dao/HSMDao.class"                                    />
+					<include name="WEB-INF/classes/com/share/deasa/service/HSMService.class"                            />
+					<include name="WEB-INF/classes/com/share/deasa/excelTemplete/HSMDetailExcelTemple.class"            />
+					<include name="WEB-INF/classes/database/sql/oracle/ibatis/deasa/deasa300.xml"                       />
+					<include name="WEB-INF/views/deasa/hsmDetail.jsp"                                                   />
+					<include name="WEB-INF/classes/com/share/themis/common/service/CommonService.class"                 />
+					<include name="WEB-INF/classes/com/share/themis/common/dao/CommonDao.class"                         />
+					<include name="WEB-INF/classes/com/share/themis/common/controller/CommonController.class"           />
+					<include name="WEB-INF/classes/com/share/common/excelUtil/ExcelUtil.class"                          />
+					<include name="WEB-INF/classes/database/sql/oracle/ibatis/common/common.xml"                        />
+					<include name="WEB-INF/classes/database/sql/oracle/sql-map-config.xml"                              /> --> 
+				 </fileset> 
+			 </copy> 
+			 
+			 <tar destfile="${tar.home}/../webapps.tar" basedir="${tar.home}/.."/>
+		</target>
+	
+	    <target name="UploadAll" depends="delete">
+	        <ssh host="${sftp.server}" port="${sftp.port}" username="${sftp.userid}" password="${sftp.pw}" version="2">
+	            <sftp action="put" remotedir="${sftp.home.dir}" verbose="true">
+	            	
+	                <fileset dir="./tar">
+	                    <!-- <include name="**/*" /> -->
+	                	<!-- <exclude name=".settings/**" /> -->
+	                    
+	                    <include name="webapps.tar" />
+	                </fileset>
+	            </sftp>
+	        </ssh>
+	    </target>
+</project> 

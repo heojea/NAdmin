@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+    
+<sqlMap namespace="ztadm101">
+    <typeAlias alias="dataMap" type="com.share.themis.common.map.DataMap" />
+    
+
+    <select id="selectAdminList" resultClass="dataMap">
+        /* ztadm101.selectAdminList */
+        SELECT T1.ADMIN_ID
+              ,T1.ADMIN_NM
+              ,T1.LOGIN_ID
+              ,T1.PWD
+              ,T1.ADMIN_TP_CD
+              ,T1.EMP_NO
+              ,T1.EMAIL
+              ,T1.TEL_NO
+              ,T1.CELL_NO
+              ,T1.ACTIVE_YN
+              ,T1.PWD_ERROR_CNT
+              ,T1.PWD_ERROR_DY
+              ,T1.REG_ID
+              <!-- ,TO_CHAR(T1.REG_DATE, 'YYYY-MM-DD') AS REG_DATE -->
+              <!-- ,TO_CHAR(T1.MOD_DATE, 'YYYY-MM-DD') AS MOD_DATE -->
+              <!-- ,T1.MOD_DATE -->
+              ,T3.CD_NM AS ADMIN_TP_NM
+              ,CASE WHEN SUBSTR(T3.REF1,2,1) = '1' THEN 'Y' ELSE 'N' END CUST_AUTH
+              ,CASE WHEN SUBSTR(T3.REF1,3,1) = '1' THEN 'Y' ELSE 'N' END LOCA_AUTH
+              ,T1.TEL_NO
+              ,T1.CELL_NO
+              ,T1.CORP_NO
+         FROM SAD_USER T1
+             ,SET_CODE T3
+        WHERE T1.ADMIN_TP_CD = T3.MINOR_CD
+          AND T3.MAJOR_CD = 'ADM01'
+          <isNotEmpty property="role_id">
+          AND EXISTS (SELECT 1 
+                        FROM SAD_ROLE_ASSIGN S1 
+                       WHERE S1.ADMIN_ID = T1.ADMIN_ID
+                         AND S1.ROLE_ID = #role_id#
+          )
+          </isNotEmpty>  
+          <isNotEmpty property="admin_id">
+          AND T1.ADMIN_ID = #admin_id#
+          </isNotEmpty>
+          <isNotEmpty property="admin_nm">
+          AND T1.ADMIN_NM LIKE CONCAT('%',CONCAT(#admin_nm#,'%'))
+          </isNotEmpty> 
+          <isNotEmpty property="admin_tp_cd">
+          AND T1.ADMIN_TP_CD = #admin_tp_cd#
+          </isNotEmpty>
+        <!-- ORDER BY T1.REG_DATE DESC -->               
+    </select>
+    
+    <insert id="insertAdmin" parameterClass="dataMap">
+        /* ztadm101.insertAdmin */
+        INSERT INTO SAD_USER (
+            ADMIN_ID
+           ,ADMIN_NM
+           ,LOGIN_ID
+           ,PWD
+           ,ADMIN_TP_CD
+           ,CORP_NO
+           ,EMP_NO
+           ,EMAIL
+           ,TEL_NO
+           ,CELL_NO
+           ,ACTIVE_YN
+           ,PWD_ERROR_CNT
+           ,PWD_ERROR_DY
+           ,REG_ID
+           <!-- ,REG_DATE -->
+           ,MOD_ID
+           <!-- ,MOD_DATE -->
+        ) VALUES (
+            #admin_id#
+           ,#admin_nm#
+           ,#login_id#
+           ,#pwd#
+           ,#admin_tp_cd#
+           ,#corp_no#
+           ,#emp_no#
+           ,#email#
+           ,#tel_no#
+           ,#cell_no#
+           ,#active_yn#
+           ,0
+           ,NULL
+           ,#user_id#
+           <!-- ,SYSDATE -->
+           ,#user_id#
+           <!-- ,SYSDATE -->
+        )
+    </insert>
+    
+    <insert id="insertAdminRoleAssign" parameterClass="dataMap">
+        /* ztadm101.insertAdminRoleAssign */
+        INSERT INTO SAD_ROLE_ASSIGN (
+            ADMIN_ID
+           ,ROLE_ID
+           ,REG_ID
+           <!-- ,REG_DATE -->
+           ,MOD_ID
+           <!-- ,MOD_DATE -->
+        ) VALUES (
+            #admin_id#
+           ,#role_id#
+           ,#user_id#
+           <!-- ,SYSDATE -->
+           ,#user_id#
+           <!-- ,SYSDATE -->
+        )
+    </insert>
+    
+    <update id="updateAdmin" parameterClass="dataMap">
+        /* ztadm101.updateAdmin */
+        UPDATE SAD_USER
+           SET ADMIN_NM = #admin_nm#
+              ,LOGIN_ID = #login_id#
+              ,ADMIN_TP_CD = #admin_tp_cd#
+              ,EMP_NO = #emp_no#
+              ,EMAIL = #email#
+              ,TEL_NO = #tel_no#
+              ,CELL_NO = #cell_no#
+              ,ACTIVE_YN = #active_yn#
+              ,PWD_ERROR_CNT = #pwd_error_cnt#
+              ,MOD_ID = #user_id#
+             <!--  ,MOD_DATE = SYSDATE -->
+         WHERE ADMIN_ID = #admin_id#
+    </update>
+    
+    <delete id="deleteAdmin" parameterClass="dataMap">
+        /* ztadm101.deleteAdmin */
+        DELETE 
+          FROM SAD_USER
+         WHERE ADMIN_ID = #admin_id#
+    </delete>
+
+    <delete id="deleteAdminRoleAssign" parameterClass="dataMap">
+        /* ztadm101.deleteAdminRoleAssign */
+        DELETE 
+          FROM SAD_ROLE_ASSIGN
+         WHERE ADMIN_ID = #admin_id#
+    </delete>
+
+</sqlMap>  

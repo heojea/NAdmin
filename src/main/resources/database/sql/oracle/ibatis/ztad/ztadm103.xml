@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+    
+<sqlMap namespace="ztadm103">
+    <typeAlias alias="dataMap" type="com.share.themis.common.map.DataMap" />
+
+    <select id="adminList" resultClass="dataMap">
+        /* ztadm103.adminList */
+        SELECT T1.ADMIN_ID
+              ,T1.ADMIN_NM
+              ,T1.LOGIN_ID
+              ,T1.PWD
+              ,T1.ADMIN_TP_CD
+              ,T1.EMP_NO
+              ,T1.EMAIL
+              ,T1.TEL_NO
+              ,T1.CELL_NO
+              ,T1.ACTIVE_YN
+              ,T1.PWD_ERROR_CNT
+              ,T1.PWD_ERROR_DY
+              ,T1.REG_ID
+              ,TO_CHAR(T1.REG_DATE, 'YYYY-MM-DD') AS REG_DATE
+              ,TO_CHAR(T1.MOD_DATE, 'YYYY-MM-DD') AS MOD_DATE
+              ,T1.MOD_DATE
+              ,T3.CD_NM AS ADMIN_TP_NM
+              ,CASE WHEN SUBSTR(T3.REF1,2,1) = '1' THEN 'Y' ELSE 'N' END CUST_AUTH
+              ,CASE WHEN SUBSTR(T3.REF1,3,1) = '1' THEN 'Y' ELSE 'N' END LOCA_AUTH
+              ,T1.TEL_NO
+              ,T1.CELL_NO
+              ,T1.CORP_NO
+         FROM SAD_USER T1
+             ,SET_CODE T3
+        WHERE T1.ADMIN_TP_CD = T3.MINOR_CD
+          AND T3.MAJOR_CD = 'ADM01'
+          <isNotEmpty property="login_id">
+          AND UPPER(T1.LOGIN_ID) LIKE CONCAT('%',CONCAT(UPPER(#login_id#),'%'))
+          </isNotEmpty>
+          <isNotEmpty property="admin_nm">
+          AND T1.ADMIN_NM LIKE CONCAT('%',CONCAT(#admin_nm#,'%'))
+          </isNotEmpty> 
+          <isNotEmpty property="admin_tp_cd">
+          AND T1.ADMIN_TP_CD = #admin_tp_cd#
+          </isNotEmpty>
+        ORDER BY T1.ADMIN_NM DESC 
+    </select>
+    
+    <select id="adminComplexAssignList" resultClass="dataMap">
+        /* ztadm103.adminComplexAssignList */
+		SELECT T1.SIDO_CD, T2.SIDO_NM, T1.COMPLEX_CD, T1.COMPLEX_NM, T3.ADMIN_ID
+		              ,(CASE WHEN T3.ADMIN_ID IS NULL THEN 'N' ELSE 'Y' END) AUTH_YN
+		FROM SET_COMPLEX_AREA T1
+		        LEFT OUTER JOIN SET_SIDO_AREA T2
+		        ON T1.SIDO_CD = T2.SIDO_CD
+		        LEFT OUTER JOIN SAD_COMPLEX_ASSIGN T3
+		        ON T1.SIDO_CD = T3.SIDO_CD
+		        AND T1.COMPLEX_CD = T3.COMPLEX_CD
+		        AND T3.ADMIN_ID = #admin_id#
+		ORDER BY T2.ORDER_SEQ, T1.ORDER_SEQ
+    </select>    
+    
+    <delete id="deleteAdminComplexAssign">
+        /* ztadm103.deleteAdminComplexAssign */
+        DELETE FROM SAD_COMPLEX_ASSIGN
+         WHERE ADMIN_ID = #admin_id# 
+    </delete>
+    
+    <insert id="insertAdminComplexAssign">
+        /* ztadm103.insertAdminComplexAssign */
+        INSERT INTO SAD_COMPLEX_ASSIGN (
+            ADMIN_ID
+           ,SIDO_CD
+           ,COMPLEX_CD
+           ,REG_ID
+           ,REG_DATE
+           ,MOD_ID
+           ,MOD_DATE
+        ) VALUES (
+            #admin_id#
+           ,#sido_cd#
+           ,#complex_cd#
+           ,#reg_id#
+           ,SYSDATE
+           ,#mod_id#
+           ,SYSDATE
+        )
+    </insert>
+
+    <select id="selectAdminComplexAssignCnt" resultClass="String"  >
+        /* ztadm103.selectAdminComplexAssignCnt */
+        SELECT (CASE WHEN COUNT(*) > 0 THEN 'Y' ELSE 'N' END) complexCnt
+         FROM SAD_COMPLEX_ASSIGN
+        WHERE ADMIN_ID = #admin_id# 
+    </select>
+
+
+</sqlMap>    
+
+
+

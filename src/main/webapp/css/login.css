@@ -1,0 +1,123 @@
+body { 
+    background:#FFFFFF; 
+}
+
+div.loginBox { 
+    width:619px;
+    height:230px;
+    margin-top:0px; 
+    margin-left:auto;
+    margin-right:auto;
+    margin-bottom: 10px;
+    background:url('../images/login/login_bg.gif') no-repeat left 0px; 
+    position:relative;
+}
+div.logo {
+    width:619px;
+    margin-top:200px; 
+    margin-left:auto;
+    margin-right:auto;
+    margin-bottom: 10px;
+    position:relative;
+}
+div.title {
+    position:absolute;
+    left:265px;
+    top:130px;
+}
+div.copy {
+    width:619px;
+    height:50px;
+    margin-top:0px; 
+    margin-left:auto;
+    margin-right:auto;
+    margin-bottom: 10px;
+    color:#000000;
+    font-size:11px;
+    line-height:16px;
+    text-align: right;
+    /* background:url('../images/login/copy.gif') no-repeat 10px 15px; */ 
+}
+div.form {
+    position:absolute;
+    left:100px;
+    top:70px;
+    width: 440px;
+    color : #ffffff;
+}
+div.btn {
+    position:absolute;
+    top:70px;
+    right:122px;
+}
+
+div.btn button.btn-submit{
+	width: 100px;
+	height: 70px;
+}
+
+div.form dl {
+    width:440px;
+}
+div.form dl dt.r1 {
+    width:70px;
+    height:24px;
+    float:left;
+    padding-left:20px;
+    background:url('../images/login/icon_pw.png') no-repeat left 0px;
+    color: #ffffff;
+    position:absolute
+}
+div.form dl dd.r1 {
+    width:140px;
+    height:27px;
+    float:left;
+    padding-left: 10px;
+}
+div.form dl dt.r2 {
+    margin: 0 0 0 3px; 
+    width:70px;
+    height:24px;
+    float:left;
+    padding-top:3px;    
+}
+div.form dl dd.r2 {
+    width:140px;
+    height:27px;
+    float:left;
+}
+div.form dl dd.r3 {
+    width:140px;
+    height:27px;
+    float:left;
+    padding-bottom:15px;
+}
+div.form dl dd.r4 {
+    width:100px;
+    height:27px;
+    float:left;
+}
+div.form dl dd.r6 {
+    width: 100px;
+    height:27px;
+    float:left;
+    padding-left:20px;
+}
+div.form dl dt.r5 {
+    width:80px;
+    height:24px;
+    float:left;
+    padding-left:20px;
+    padding-bottom:15px;
+    background:url('../images/login/icon_id.png') no-repeat left 0px;
+    color: #ffffff;
+}
+
+div.form dl dd div.corp_form{
+	padding-top: 10px;
+	color: #ffffff;
+}
+
+div.form dl dd div.corp_form div{
+	color: #ffffff;
+}

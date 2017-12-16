@@ -1,0 +1,266 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+    
+<sqlMap namespace="common">
+    <typeAlias alias="dataMap" type="com.share.themis.common.map.DataMap" />
+    
+    <select id="selectMenuList" resultClass="dataMap">
+        /* common.selectMenu */
+        SELECT * 
+        FROM (
+        SELECT T3.MENU_ID
+              ,T3.UP_MENU_ID
+              ,T3.MENU_NM
+              ,T3.MENU_DEPTH
+              ,T3.ORDER_SEQ
+              ,T3.URL
+          FROM SAD_ROLE_ASSIGN T1
+              ,SAD_MENU_ASSIGN T2
+              ,SAD_MENU T3
+              ,SAD_ROLE T4
+         WHERE T1.ROLE_ID = T2.ROLE_ID
+           AND T2.MENU_ID = T3.MENU_ID
+           AND T4.ROLE_ID = T1.ROLE_ID
+           AND T4.ACTIVE_YN = 'Y'
+           AND T1.ADMIN_ID = #admin_id#
+           AND T3.MENU_DEPTH = #menu_depth#
+           AND T3.ACTIVE_YN = 'Y'
+           AND T3.MENU_YN = 'Y'
+           <isNotEmpty property="menu_id">
+           AND T3.MENU_ID = #menu_id#
+           </isNotEmpty>
+           <isNotEmpty property="up_menu_id">
+           AND T3.UP_MENU_ID = #up_menu_id#
+           </isNotEmpty>        
+         ORDER BY T3.ORDER_SEQ
+         )
+         <isNotEmpty property="limit">
+         WHERE ROWNUM BETWEEN 0 AND #limit#
+         </isNotEmpty>    
+    </select>
+    
+    <select id="selectCodeList" resultClass="dataMap">
+        /* common.selectCodeList */
+        SELECT MAJOR_CD
+              ,MINOR_CD
+              ,CD_NM
+              ,USE_YN
+              ,ORDER_SEQ
+              ,REF1
+              ,REF2
+              ,REF3
+              ,REG_ID
+              <!-- ,REG_DATE -->
+              ,MOD_ID
+              <!-- ,MOD_DATE -->
+              ,(SELECT CD_GRP_NM FROM SET_CD_GRP S1 WHERE S1.MAJOR_CD = T1.MAJOR_CD) MAJOR_NM
+          FROM SET_CODE T1
+         WHERE MAJOR_CD = #major_cd#
+           AND USE_YN = 'Y'
+           <isNotEmpty property="minor_cd">
+           AND MINOR_CD = #minor_cd#
+           </isNotEmpty>
+           <isNotEmpty property="ref1_like">
+           AND REF1 LIKE CONCAT(#ref1_like#, '%')
+           </isNotEmpty>
+          ORDER BY ORDER_SEQ
+    </select>
+    
+    <select id="selectHeraCodeList" resultClass="dataMap">
+        /* common.selectHeraCodeList */
+        SELECT MAJOR_CD
+              ,MINOR_CD
+              ,CD_NM
+              ,USE_YN
+              ,ORDER_SEQ
+              ,REF1
+              ,REF2
+              ,REF3
+              ,REG_ID
+              <!-- ,REG_DATE -->
+              ,MOD_ID
+              <!-- ,MOD_DATE -->
+              ,(SELECT CD_GRP_NM FROM SET_CD_GRP S1 WHERE S1.MAJOR_CD = T1.MAJOR_CD) AS MAJOR_NM
+          FROM SYS_CODE T1
+         WHERE MAJOR_CD = #major_cd#
+           AND USE_YN = 'Y'
+           <isNotEmpty property="minor_cd">
+           AND MINOR_CD = #minor_cd#
+           </isNotEmpty>
+           <isNotEmpty property="ref1_like">
+           AND REF1 LIKE CONCAT(#ref1_like#, '%')
+           </isNotEmpty>
+          ORDER BY ORDER_SEQ
+    </select>
+    
+    <select id="selectSiteList" resultClass="dataMap">
+        /* common.selectSiteList */
+        SELECT SITE_ID
+              ,SITE_LOGIN_ID
+              ,SITE_NM
+              ,ACTIVE_YN
+              ,BIZ_NO
+              ,CEO_NM
+              ,BIZ_TP_NM
+              ,BIZ_KIND_NM
+              ,POST_NO
+              ,ADDR1_NM
+              ,ADDR2_NM
+              ,REG_ID
+              <!-- ,REG_DATE -->
+              ,MOD_ID
+              <!-- ,MOD_DATE -->
+         FROM STE_SITE
+        WHERE ACTIVE_YN = 'Y'
+          <isNotEmpty property="site_id">
+          AND SITE_ID = #site_id#
+          </isNotEmpty>
+         ORDER BY SITE_NM
+    </select>
+    
+    <select id="selectDate" resultClass="dataMap">
+        /* common.selectDate */
+        SELECT TO_CHAR(SYSDATE,'YYYY-MM-DD') AS YYYYMMDD
+                      ,TO_CHAR(SYSDATE,'YYYY-MM') AS YYYYMM
+                      ,TO_CHAR(SYSDATE,'YYYY') AS Y
+                      ,TO_CHAR(SYSDATE,'YY') AS YS
+                      ,TO_CHAR(SYSDATE,'MONTH') AS M
+                      ,TO_CHAR(SYSDATE,'MM') AS MS
+                      ,TO_CHAR(TO_NUMBER(TO_CHAR(SYSDATE,'MM'))) AS C
+                      ,TO_CHAR(SYSDATE,'MON') AS B
+                      ,CASE WHEN SUBSTR(TO_CHAR(SYSDATE,'MMTH'),1,1) = '0' THEN SUBSTR(TO_CHAR(SYSDATE,'MMTH'),2) ELSE TO_CHAR(SYSDATE,'MMTH') END AS D
+                      ,TO_CHAR(SYSDATE,'DD') AS DS
+                      ,TO_CHAR(TO_NUMBER(TO_CHAR(SYSDATE,'DDD'))) AS J
+                      ,TO_CHAR(SYSDATE,'DAY') AS W
+                      ,TO_CHAR(SYSDATE,'DAY') AS WS
+                      ,TO_CHAR(SYSDATE,'DY') AS A
+                      ,TO_CHAR(SYSDATE,'HH:MI:SS AM') AS R
+                      ,TO_CHAR(SYSDATE,'HH24:MI:SS') AS T
+                      ,TO_CHAR(SYSDATE,'HH24') AS H
+                      ,TO_CHAR(SYSDATE,'MI') AS I
+                      ,TO_CHAR(TO_NUMBER(TO_CHAR(SYSDATE,'MI'))) AS K
+                      ,TO_CHAR(SYSDATE,'AM') AS P
+                      ,TO_CHAR(SYSDATE,'SS') AS S
+                      ,TO_CHAR(SYSDATE-1,'YYYY-MM-DD') AS YESTERDAY
+                      ,TO_CHAR(SYSDATE+1,'YYYY-MM-DD') AS TOMORROW
+                      ,TO_CHAR(SYSDATE-7,'YYYY-MM-DD') AS LAST_7_DAY
+                      ,TO_CHAR(SYSDATE-5,'YYYY-MM-DD') AS LAST_5_DAY
+                      ,TO_CHAR(SYSDATE+7,'YYYY-MM-DD') AS AFTER_7_DAY
+                      ,TO_CHAR(SYSDATE+10,'YYYY-MM-DD') AS AFTER_10_DAY
+                      ,TO_CHAR(ADD_MONTHS(SYSDATE,-1),'YYYY-MM-DD') AS LAST_MONTH
+                      ,TO_CHAR(ADD_MONTHS(SYSDATE,-3),'YYYY-MM-DD') AS THREE_MONTH_AGO
+                      ,TO_CHAR(ADD_MONTHS(SYSDATE,-12),'YYYY-MM-DD') AS LAST_YEAR
+              <isNotEmpty property="format1">
+              ,TO_CHAR(SYSDATE, #format1#) AS FORMAT1
+              </isNotEmpty>
+              <isNotEmpty property="format2">
+              ,TO_CHAR(ADD_MONTHS(SYSDATE,-12*#term2#),#format2#) AS FORMAT2
+              </isNotEmpty>
+              <isNotEmpty property="format3">
+              ,TO_CHAR(ADD_MONTHS(SYSDATE,#term3#),#format3#) AS FORMAT3
+              </isNotEmpty>                
+              <isNotEmpty property="format4">
+              ,TO_CHAR(SYSDATE+(1*(#term4#)),#format4#) AS FORMAT4
+              </isNotEmpty>
+              <isNotEmpty property="format5">
+              ,TO_CHAR(SYSDATE+(1/24*(#term5#)),#format5#) AS FORMAT5
+              </isNotEmpty>
+              <isNotEmpty property="start_dy">
+              ,TO_DATE(#end_dy#,'YYYYMMDD'))-TO_DATE(#start_dy#,'YYYYMMDD')) AS DATEDIFF
+              </isNotEmpty>
+        FROM DUAL
+    </select>
+    
+  
+    
+    <!-- 시도구분 조회 -->
+    <select id="selectSidoList" resultClass="dataMap">
+        /* common.selectSidoList */
+        SELECT
+            SIDO_CD
+            , SIDO_NM
+            , ORDER_SEQ
+            , REG_ID
+            , REG_DATE
+            , MOD_ID
+            , MOD_DATE
+        FROM SET_SIDO_CODE
+        ORDER BY ORDER_SEQ ASC
+    </select>
+    
+    <!-- 구군구분 조회 -->
+    <select id="selectGugunList" resultClass="dataMap">
+        /* common.selectGugunList */
+        SELECT
+            SIDO_CD
+            , GUGUN_CD
+            , GUGUN_NM
+            , ORDER_SEQ
+            , REG_ID
+            , REG_DATE
+            , MOD_ID
+            , MOD_DATE
+        FROM SET_GUGUN_CODE
+        WHERE SIDO_CD = #sido_cd#
+        ORDER BY ORDER_SEQ ASC
+    </select>
+    
+    <resultMap class="String" id="selectTempleteMap">
+            <result column="TEMP_CONTENT" property="TEMP_CONTENT" jdbcType="CLOB" javaType="java.lang.String"/>
+    </resultMap>
+        
+    <select id="selectTemplete" parameterClass="String" resultMap="selectTempleteMap">
+        /* common.selectTemplete */
+        SELECT TEMP_CONTENT
+        FROM SOP_TEMPLATE
+        WHERE TEMP_NO = #temp_no#
+    </select>
+    
+    <insert id="insertTempleteHist" parameterClass="dataMap">
+        /* common.insertTempleteHist */
+        INSERT INTO SOP_TEMPLATE_HIS (
+            TEMPLATE_HIS_SEQ
+            ,TEMP_NO
+            ,TEMP_TP_CD
+            ,SEND_DT
+            ,SEND_CONTENT
+            ,MEMBER_NO
+            ,ORDER_ID
+            ,EMAIL
+            ,CELL_NO
+            ,REG_ID
+            ,REG_DATE
+            ,MOD_ID
+            ,MOD_DATE
+        ) VALUES (
+             SOP_TEMPLATE_HIS_TEMPLATE_HIS.NEXTVAL
+            ,#temp_no#
+            ,#temp_tp_cd#
+            ,TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS')
+            ,#send_content#
+            ,#member_no#
+            ,#order_id#
+            ,#email#
+            ,#cell_no#
+            ,#reg_id#
+            ,SYSDATE
+            ,#mod_id#
+            ,SYSDATE
+        )
+    </insert>
+  
+  
+    <!-- commonCode paymethod etc... -->
+    <select id="selectCommonCodeList" resultClass="dataMap">
+        <![CDATA[
+			SELECT IFNULL(cd, '') AS cd
+			     , IFNULL(cd_nm, '') AS cd_nm
+			  FROM tbctcd
+			 WHERE group_cd = #search_group_cd#
+		       AND use_yn = 'Y'
+		     ORDER BY sort_no ASC
+		]]>
+    </select>
+</sqlMap>  

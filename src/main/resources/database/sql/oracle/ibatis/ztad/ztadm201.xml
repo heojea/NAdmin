@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+    
+<sqlMap namespace="ztadm201">
+    <typeAlias alias="dataMap" type="com.share.themis.common.map.DataMap" />
+    
+
+    <select id="selectMenuList" resultClass="dataMap">
+        /* ztadm201.selectMenuList */
+        SELECT MENU_ID
+              ,URL
+              ,UP_MENU_ID
+              ,MENU_NM
+              ,MENU_DEPTH
+              ,MENU_YN
+              ,ACTIVE_YN
+              ,LEAF_MENU_YN
+              ,REG_VIEW_DIVN_CD
+              ,ORDER_SEQ
+              ,MENU_DESC
+              ,REG_ID
+              <!-- ,REG_DATE -->
+              ,MOD_ID
+              <!-- ,MOD_DATE -->
+          FROM SAD_MENU T1
+         WHERE 1 = 1
+           <isNotEmpty property="menu_depth">
+           AND T1.MENU_DEPTH = #menu_depth#
+           </isNotEmpty>
+           <isNotEmpty property="menu_id">
+           AND T1.MENU_ID = #menu_id#
+           </isNotEmpty>
+           <isNotEmpty property="up_menu_id">
+           AND T1.UP_MENU_ID = #up_menu_id#
+           </isNotEmpty>
+           <isNotEmpty property="menu_nm">
+           AND ((T1.MENU_DEPTH != 4) OR 
+                (T1.MENU_DEPTH = 4 AND T1.MENU_NM LIKE CONCAT('%',CONCAT(#menu_nm#,'%')))
+                )
+           </isNotEmpty>
+         ORDER BY T1.MENU_DEPTH, T1.ORDER_SEQ
+    </select>
+    
+    <select id="selectMenu" resultClass="dataMap">
+        /* ztadm201.selectMenu */
+        SELECT MENU_ID
+              ,URL
+              ,UP_MENU_ID
+              ,MENU_NM
+              ,MENU_DEPTH
+              ,MENU_YN
+              ,ACTIVE_YN
+              ,LEAF_MENU_YN
+              ,REG_VIEW_DIVN_CD
+              ,ORDER_SEQ
+              ,MENU_DESC
+              ,REG_ID
+              <!-- ,REG_DATE -->
+              ,MOD_ID
+              <!-- ,MOD_DATE -->
+              ,(SELECT MENU_NM FROM SAD_MENU S1 WHERE S1.MENU_ID = T1.UP_MENU_ID) AS DEPTH3_MENU_NM
+              ,(SELECT (SELECT MENU_NM FROM SAD_MENU S3 WHERE S3.MENU_ID = S4.UP_MENU_ID) FROM SAD_MENU S4 WHERE S4.MENU_ID = T1.UP_MENU_ID) AS DEPTH2_MENU_NM
+              ,(SELECT (SELECT (SELECT MENU_NM FROM SAD_MENU S9 WHERE S9.MENU_ID = S8.UP_MENU_ID) FROM SAD_MENU S8 WHERE S8.MENU_ID = S7.UP_MENU_ID) FROM SAD_MENU S7 WHERE S7.MENU_ID = T1.UP_MENU_ID) AS DEPTH1_MENU_NM
+          FROM SAD_MENU T1
+         WHERE MENU_ID = #menu_id#
+    </select>
+    
+    <update id="updateMenu" parameterClass="dataMap">
+        /* ztadm201.updateMenu */
+        UPDATE SAD_MENU
+           SET MOD_ID = #mod_id# 
+            <!-- ,MOD_DATE = SYSDATE -->
+              
+           <isNotEmpty property="menu_nm">
+              ,MENU_NM = #menu_nm#
+           </isNotEmpty>
+           <isNotEmpty property="url">
+              ,URL = #url#
+           </isNotEmpty>
+           <isNotEmpty property="menu_yn">
+              ,MENU_YN = #menu_yn#
+           </isNotEmpty>
+           <isNotEmpty property="active_yn">
+              ,ACTIVE_YN = #active_yn#
+           </isNotEmpty>
+           <isNotEmpty property="leaf_menu_yn">
+              ,LEAF_MENU_YN = #leaf_menu_yn#
+           </isNotEmpty>
+           <isNotEmpty property="reg_view_divn_cd">
+              ,REG_VIEW_DIVN_CD = #reg_view_divn_cd#
+           </isNotEmpty>
+           <isNotEmpty property="order_seq">
+              ,ORDER_SEQ = #order_seq#
+           </isNotEmpty>
+         WHERE MENU_ID = #menu_id#
+    </update>
+    
+    <delete id="deleteMenu" parameterClass="dataMap">
+        /* ztadm201.deleteMenu */
+        DELETE
+          FROM SAD_MENU
+         WHERE MENU_ID = #menu_id#
+    </delete>
+    
+    <delete id="deleteMenuAssign" parameterClass="dataMap">
+        /* ztadm201.deleteMenuAssign */
+        DELETE
+          FROM SAD_MENU_ASSIGN
+         WHERE MENU_ID = #menu_id#
+    </delete>
+    
+    
+    <insert id="insertMenu" parameterClass="dataMap">
+        /* ztadm201.insertMenu */
+        INSERT INTO SAD_MENU (
+            MENU_ID
+           ,URL
+           ,UP_MENU_ID
+           ,MENU_NM
+           ,MENU_DEPTH
+           ,MENU_YN
+           ,ACTIVE_YN
+           ,LEAF_MENU_YN
+           ,REG_VIEW_DIVN_CD
+           ,ORDER_SEQ
+           ,MENU_DESC
+           ,REG_ID
+           <!-- ,REG_DATE -->
+           ,MOD_ID
+           <!-- ,MOD_DATE -->
+        ) VALUES (
+            #menu_id#
+           ,#url#
+           ,#up_menu_id#
+           ,#menu_nm#
+           ,#menu_depth#
+           ,#menu_yn#
+           ,'N'
+           ,#leaf_menu_yn#
+           ,'20'
+           ,0
+           ,NULL
+           ,#reg_id#
+           <!-- ,SYSDATE -->
+           ,#mod_id#
+           <!-- ,SYSDATE -->
+        )
+    </insert>
+    
+
+</sqlMap>  

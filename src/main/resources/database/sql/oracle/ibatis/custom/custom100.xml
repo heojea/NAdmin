@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+    
+<sqlMap namespace="custom100">
+    <typeAlias alias="dataMap" type="com.share.themis.common.map.DataMap" />
+    
+    <select id="selectGsRetail" resultClass="dataMap">
+		select *
+		
+		from (
+		
+		select m811.assocom_id, m830.account_seq, m811.assocom_name,
+		m830.account_name
+		
+		from tbtcm811 m811 , tbtcm830 m830
+		
+		where m811.assocom_id = m830.assocom_id 
+		
+		) tmp where 1=1
+		<isNotEmpty property="search_accountNm">
+			AND assocom_name like concat('%', #search_accountNm#, '%') 
+		</isNotEmpty> 
+		<isNotEmpty property="accountSeq">
+		    AND account_seq = #accountSeq#
+		</isNotEmpty>  
+		order by tmp.account_name asc
+		
+    </select>
+
+    <select id="selectGsRetailDetailData" resultClass="dataMap">
+		select pin_code
+		      ,barcode
+		      ,mobile
+		      ,valid_date
+		      ,depl_status
+		      ,chg_status
+		      ,mstor_id
+		      ,depl_date
+		      ,depl_amount
+		      ,tr_amt
+		      ,upt_dtime
+		      ,entpri_cd
+		      ,account_name
+		from (
+		      select pin_code
+		           , temp.barcode
+		           , mobile
+		           , valid_date
+		           , depl_status
+		           , chg_status
+		           , depl_date
+		           , depl_amount
+		           , tr_amt
+		           , account_seq
+		           , entpri_cd
+		           , CASE mstor_id WHEN 'kscc-pos' THEN '포스기' 
+		                           WHEN 'kscc-ic' THEN '인터넷카드' 
+		                           WHEN 'kscc-mc' THEN '모바일카드' 
+		             END AS mstor_id
+		           , DATE_FORMAT(upt_dtime,'%Y-%m-%d %H:%i:%s') as upt_dtime
+		      from (
+		             select m.pin_code
+		                   ,m.barcode
+		                   ,m.mobile
+		                   ,DATE_FORMAT(m.valid_date,'%Y-%m-%d') as valid_date
+		                   ,m.depl_status
+		                   ,m.chg_status
+		                   ,DATE_FORMAT(m.depl_date,'%Y-%m-%d') as depl_date
+		                   ,m.depl_amount
+		                   , m.tr_amt
+		                   , m.upt_dtime
+		                   , m.account_seq
+		                   , CASE d.entpri_cd WHEN 'MK100211' THEN 'GS25' 
+		                                      WHEN 'MK100227' THEN 'K7' 
+		                     END AS entpri_cd
+		            from (
+		                  select pin_code
+		                         , barcode
+		                         , mobile
+		                         , valid_date
+		                         , depl_date
+		                         , depl_amount
+		                         , tr_amt
+		                         , upt_dtime
+		                         , account_seq
+		                         , case left(pin_class_cd, 1) when 0 then '배포취소' 
+		                                                      when 1 then '배포' 
+		                            end as 'depl_status'
+		                         , CASE bal_amt WHEN 0 THEN '충전' 
+		                            ELSE '미충전' END AS 'chg_status'
+		                  from tbtcm875 
+		                  WHERE assocom_id = #assocom_id#   <!-- 'gsretail' --> 
+		                    AND account_seq =  #account_seq#  <!-- 'N130016'  -->  <!--  <= 업체코드, 계좌코드 설정  gsretail	N130016   20140326  20140425 -->
+		                    and date_format(upt_dtime, '%Y%m%d') between #start_dt# and #end_dt# <!--  <= 검색날짜 설정 -->
+		                ) m
+		  
+		            left join
+		             tbyid888 d
+		            on m.barcode = d.barcode and d.result_cd in ('3','D')
+		           ) temp
+		          left join
+		          (select distinct(barcode)
+		                , mstor_id
+		            from tbtcd875
+		            where assocom_id =  #assocom_id#  <!-- 'gsretail' --> 
+		              AND account_seq = #account_seq# <!-- 'N130016' --> <!-- <= 업체코드,계좌코드 설정 gsretail	N120132   20140326  20140425 -->
+		              and tr_class_cd = '10'
+		          ) d875 on d875.barcode = temp.barcode
+		) temps
+		left join(
+		          select account_name, account_seq from tbtcm830 
+		          where assocom_id = #assocom_id#  <!-- 'gsretail' --> 
+		          AND account_seq =  #account_seq# <!-- 'N130016' -->   <!-- <= 업체코드,계좌코드 설정 -->
+		) temp3 on temps.account_seq = temp3.account_seq
+				
+    </select>
+    
+    <!-- tcoin main search query -->
+     <select id="selectTcoin" resultClass="dataMap">
+		select m811.assocom_id
+		      ,m830.account_seq
+		      ,m811.assocom_name
+		      ,m830.account_name
+		from tbtcm811 m811 
+		     , tbtcm830 m830
+		where  m811.assocom_id = m830.assocom_id
+		<isNotEmpty property="search_accountNm">
+			AND account_name like concat('%', #search_accountNm#, '%') 
+		</isNotEmpty> 
+    </select>
+    
+    
+    <!-- 발행된티코인내역 -->
+	<select id="tCoinListSelect"  resultClass="dataMap">
+		select m875.mobile 
+		      ,m875.depl_amount 
+		      ,m875.bal_amt 
+		      ,date_format(m875.valid_date,"%Y년%m월%d일") as valid_date 
+		      ,date_format(m875.regist_dtime,"%Y년%m월%d일") as regist_dtime
+		      ,date_format(m875.upt_dtime,"%Y-%m-%d %H:%i:%s") as upt_dtime
+		      ,m875.barcode 
+		      ,m830.sms_amt 
+		from tbtcm875 m875
+		    ,tbtcm830 m830
+		where m875.assocom_id = #assocomId# 
+		and m875.account_seq = #seq#
+		and m875.account_seq = m830.account_seq
+		and m875.depl_date between #startDate#  and #endDate# 
+		group by m875.barcode
+		order by m875.regist_dtime asc;
+	</select>
+	
+	<!-- 충전내역 -->
+	<select id="tCoinListSelect2"  resultClass="dataMap">
+		select m875.mobile 
+      		 ,m875.depl_amount 
+       		,m875.tr_amt 
+       		,m875.bal_amt 
+			,m875.serv_fee_amt 
+			,m875.conv_fee_amt 
+			,date_format(m875.valid_date,"%Y년%m월%d일") as valid_date
+			,date_format(m875.regist_dtime,"%Y년%m월%d일") as regist_dtime
+			,date_format(m875.upt_dtime,"%Y-%m-%d %H:%i:%s") as upt_dtime
+			,m875.barcode 
+		from tbtcm875 m875
+		    ,tbtcd875 d875
+		where m875.assocom_id = #assocomId#
+	    and m875.account_seq = #seq#   
+		and m875.pin_class_cd like "1%"
+		and m875.bal_amt = "0"
+		and m875.account_seq = d875.account_seq
+		and m875.barcode = d875.barcode
+		and d875.tr_req_date between #startDate#  and #endDate#  
+		group by d875.barcode
+		order by m875.regist_dtime asc;
+	</select>
+	
+	<!-- 낙전금액 -->
+	<select id="tCoinListSelect3"  resultClass="dataMap">
+		select m875.mobile 
+		       ,m875.depl_amount 
+		       ,m875.bal_amt 
+		       ,date_format(m875.valid_date,"%Y년%m월%d일") as valid_date
+		       ,date_format(m875.regist_dtime,"%Y년%m월%d일") as regist_dtime
+		       ,m875.barcode 
+		from tbtcm875 m875
+		where m875.assocom_id = #assocomId#
+	    and m875.account_seq = #seq#    
+		and m875.pin_class_cd like "1%"
+		and m875.valid_date between #startDate#  and #endDate#  
+		and m875.bal_amt != "0"
+		group by m875.barcode
+		order by m875.regist_dtime asc;
+	</select>
+	
+	<!-- 취소금액 -->
+	<select id="tCoinListSelect4"  resultClass="dataMap">
+		select m875.mobile 
+	       ,m875.depl_amount 
+	       ,m875.bal_amt 
+	       ,date_format(m875.valid_date,"%Y년%m월%d일") as valid_date
+	       ,date_format(m875.regist_dtime,"%Y년%m월%d일") as regist_dtime
+	       ,m875.barcode
+	       ,date_format(m875.upt_dtime,"%Y-%m-%d %H:%i:%s") as upt_dtime
+		from tbtcm875 m875
+		where m875.assocom_id = #assocomId#
+		and m875.account_seq = #seq#  
+		and m875.pin_class_cd like "0%"
+		and m875.bal_amt != "0"
+		and date_format(m875.upt_dtime, "%Y%m%d") between #startDate#  and #endDate#  
+		group by m875.barcode
+		order by m875.regist_dtime asc
+	</select>
+</sqlMap>  

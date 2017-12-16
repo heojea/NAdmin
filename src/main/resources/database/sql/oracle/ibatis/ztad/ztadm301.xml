@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+    
+<sqlMap namespace="ztadm301">
+    <typeAlias alias="dataMap" type="com.share.themis.common.map.DataMap" />
+    
+
+    <select id="selectMajorCodeList" resultClass="dataMap">
+        /* ztadm301.selectMajorCodeList */
+        SELECT MAJOR_CD
+              ,CD_GRP_NM
+              ,CD_GRP_DESC
+              ,REG_ID
+              <!-- ,REG_DATE -->
+              ,MOD_ID
+              <!-- ,MOD_DATE -->
+         FROM SET_CD_GRP
+        WHERE 1 = 1
+          <isNotEmpty property="major_cd">
+          AND MAJOR_CD = #major_cd#
+          </isNotEmpty>
+          <isNotEmpty property="cd_grp_nm">
+          AND CD_GRP_NM LIKE CONCAT('%',CONCAT(#cd_grp_nm#,'%'))
+          </isNotEmpty> 
+        ORDER BY  MAJOR_CD
+    </select>
+    
+    <select id="selectMinorCodeList" resultClass="dataMap">
+        /* ztadm301.selectMinorCodeList */
+        SELECT T1.MAJOR_CD
+              ,T2.CD_GRP_NM MAJOR_NM
+              ,T1.MINOR_CD
+              ,T1.CD_NM
+              ,T1.USE_YN
+              ,T1.ORDER_SEQ
+              ,T1.REF1
+              ,T1.REF2
+              ,T1.REF3
+              ,T1.REG_ID
+              ,T1.REG_DATE
+              ,T1.MOD_ID
+              ,T1.MOD_DATE
+         FROM SET_CODE T1
+             ,SET_CD_GRP T2
+        WHERE T1.MAJOR_CD = T2.MAJOR_CD
+          AND T1.MAJOR_CD = #major_cd#
+          <isNotEmpty property="minor_cd">
+          AND T1.MINOR_CD = #minor_cd#
+          </isNotEmpty>
+        ORDER BY T1.ORDER_SEQ
+    </select>
+    
+    <insert id="insertMajorCode">
+        /* ztadm301.insertMajorCode */
+        INSERT INTO SET_CD_GRP (
+            MAJOR_CD
+           ,CD_GRP_NM
+           ,CD_GRP_DESC
+           ,REG_ID
+           ,REG_DATE
+           ,MOD_ID
+           ,MOD_DATE
+        ) VALUES (
+            #major_cd#
+           ,#cd_grp_nm#
+           ,#cd_grp_desc#
+           ,#reg_id#
+           ,SYSDATE
+           ,#mod_id#
+           ,SYSDATE
+        )
+    </insert>
+    
+    <insert id="insertMinorCode">
+        /* ztadm301.insertMinorCode */
+        INSERT INTO SET_CODE (
+            MAJOR_CD
+           ,MINOR_CD
+           ,CD_NM
+           ,USE_YN
+           ,ORDER_SEQ
+           ,REF1
+           ,REF2
+           ,REF3
+           ,REG_ID
+           ,REG_DATE
+           ,MOD_ID
+           ,MOD_DATE
+        ) VALUES (
+            #major_cd#
+           ,#minor_cd#
+           ,#cd_nm#
+           ,'Y'
+           ,0
+           ,#ref1#
+           ,#ref2#
+           ,#ref3#
+           ,#reg_id#
+           ,SYSDATE
+           ,#mod_id#
+           ,SYSDATE
+        )
+    </insert>
+    
+    <update id="updateMajorCode">
+        /* ztadm301.updateMajorCode */
+        UPDATE SET_CD_GRP
+           SET CD_GRP_NM = #cd_grp_nm#
+              ,CD_GRP_DESC = #cd_grp_desc#
+              ,MOD_ID = #mod_id#
+              ,MOD_DATE = SYSDATE
+         WHERE MAJOR_CD = #major_cd# 
+    </update>
+    
+    <update id="updateMinorCode">
+        /* ztadm301.updateMinorCode */
+        UPDATE SET_CODE
+           SET CD_NM = #cd_nm#
+              ,USE_YN = #use_yn#
+              ,ORDER_SEQ = #order_seq#
+              ,REF1 = #ref1#
+              ,REF2 = #ref2#
+              ,REF3 = #ref3#
+              ,MOD_ID = #mod_id#
+              ,MOD_DATE = SYSDATE
+         WHERE MAJOR_CD = #major_cd#
+           AND MINOR_CD = #minor_cd# 
+    </update>
+    
+    <delete id="deleteMajorCode">
+        /* ztadm301.deleteMajorCode */
+        DELETE 
+          FROM SET_CD_GRP
+         WHERE MAJOR_CD = #major_cd#
+    </delete>
+    
+    <delete id="deleteMinorCode">
+        /* ztadm301.deleteMinorCode */
+        DELETE 
+          FROM SET_CODE
+         WHERE MAJOR_CD = #major_cd#
+           <isNotEmpty property="minor_cd">
+           AND MINOR_CD = #minor_cd#
+           </isNotEmpty>
+    </delete>
+    
+
+</sqlMap>  

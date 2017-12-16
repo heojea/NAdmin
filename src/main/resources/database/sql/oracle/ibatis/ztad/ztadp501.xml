@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+    
+<sqlMap namespace="ztadp501">
+    <typeAlias alias="dataMap" type="com.share.themis.common.map.DataMap" />
+
+    <insert id="insertTempleteHist" parameterClass="dataMap">
+        /* ztadp501.insertTempleteHist */
+        INSERT INTO SOP_TEMPLATE_HIS (
+             TEMPLATE_HIS_SEQ
+            ,TEMP_NO
+            ,TEMP_TP_CD
+            ,SEND_DT
+            ,SEND_CONTENT
+            ,MEMBER_NO
+            ,EMAIL
+            ,CELL_NO
+            ,REG_ID
+            ,REG_DATE
+            ,MOD_ID
+            ,MOD_DATE
+        ) VALUES (
+             TEMPLATE_HIS_SEQ.NEXTVAL
+            ,#temp_no#
+            ,#temp_tp_cd#
+            ,TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+            ,#send_content#
+            ,#member_no#
+            ,#email#
+            ,#cell_no#
+            ,#reg_id#
+            ,SYSDATE
+            ,#mod_id#
+            ,SYSDATE
+        )
+    </insert>
+</sqlMap>  

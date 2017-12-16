@@ -1,0 +1,82 @@
+/*********************************************************************
+* Program       :header.css
+* Description   :UI CSS
+* Version       :1.0
+* Date          :2010/03/23     Writer : goodbug
+ **********************************************************************/
+
+body { background-color:#F1F1F1;
+}
+
+#leftClose div.topT {
+    height:33px;
+    background:#D8D6C9 url('../images/common/left_menu.gif') no-repeat 12px 12px;
+    padding:12px 0 0 130px;
+}
+#leftOpen {
+    display:none;
+}
+#leftOpen div.topT {
+    width:20px;
+    height:565px;
+    background:url('../images/common/left_menu2.gif') no-repeat left top;
+    padding-top:95px;
+}
+
+div.left_menu {
+    overflow:auto;
+}
+
+ul.depth1 {
+    width:165px;
+    margin:0 auto;
+    padding:15px 0;
+}
+ul.depth1 li {
+    font-size:13px;
+    font-weight:bold;
+    line-height:18px;
+    background:url('../images/common/icon_1.gif') no-repeat left 5px;
+    padding:0 0 5px 10px;
+}
+ul.depth2 {
+    width:160px;
+    margin-left:0px;
+    padding-top:4px;
+}
+ul.depth2 li {
+    font-size:12px;
+    font-weight:bold;
+    background:url('../images/common/icon_2.gif') no-repeat left 3px;
+    padding:0 0 3px 14px;
+}
+ul.depth3 {
+    width:150px;
+    margin-left:0px;
+    padding-top:4px;
+}
+ul.depth3 li.off {
+    font-size:11px;
+    font-weight:normal;
+    background:url('../images/common/icon_3.gif') no-repeat left 7px;
+    padding:0 0 3px 9px;
+}
+ul.depth3 li.on {
+    font-size:11px;
+    font-weight:normal;
+    background:url('../images/common/icon_3_on.gif') no-repeat left 7px;
+    padding:0 0 3px 9px;
+}
+ul.depth3 li.on a {
+    color:#cc6633;
+}
+ul.depth1 a:hover {
+    color:#cc6633;
+}
+
+ul.depth1 li.off ul.depth2 {
+    display:none;
+}
+ul.depth2 li.off ul.depth3 {
+    display:none;
+}

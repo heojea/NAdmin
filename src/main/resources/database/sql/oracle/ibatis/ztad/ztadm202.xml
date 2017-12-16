@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+    
+<sqlMap namespace="ztadm202">
+    <typeAlias alias="dataMap" type="com.share.themis.common.map.DataMap" />
+
+    <select id="selectAdminRoleList" resultClass="dataMap">
+        /* ztadm202.selectAdminRoleList */
+        SELECT T1.ROLE_ID
+              ,T1.ROLE_NM
+              ,T1.ACTIVE_YN
+              ,T1.ROLE_DESC
+              ,T1.REG_ID
+              <!-- ,T1.REG_DATE -->
+              ,T1.MOD_ID
+              <!-- ,T1.MOD_DATE -->
+              <isNotEmpty property="admin_id">
+              ,CASE WHEN (SELECT COUNT(1) FROM SAD_ROLE_ASSIGN S1 WHERE S1.ROLE_ID = T1.ROLE_ID AND S1.ADMIN_ID = #admin_id#) = 1 THEN 'Y'
+                    ELSE 'N'
+               END CHECKED
+              </isNotEmpty>
+              <isEmpty property="admin_id">
+              ,'N' CHECKED
+              </isEmpty>
+         FROM SAD_ROLE T1
+        WHERE 1 = 1
+          <isNotEmpty property="role_id"> 
+          AND T1.ROLE_ID = #role_id#
+          </isNotEmpty>
+          <isNotEmpty property="active_yn">
+          AND T1.ACTIVE_YN = #active_yn#
+          </isNotEmpty>
+         ORDER BY T1.ROLE_NM
+    </select>
+    
+    <select id="selectMenuRoleList" resultClass="dataMap">
+        /* ztadm202.selectMenuRoleList */
+        SELECT T1.MENU_ID
+              ,T1.URL
+              ,T1.UP_MENU_ID
+              ,T1.MENU_NM
+              ,T1.MENU_DEPTH
+              ,T1.MENU_YN
+              ,T1.ACTIVE_YN
+              ,T1.LEAF_MENU_YN
+              ,T1.REG_VIEW_DIVN_CD
+              ,T1.ORDER_SEQ
+              ,T1.MENU_DESC
+              ,T1.REG_ID
+              <!-- ,T1.REG_DATE -->
+              ,T1.MOD_ID
+              <!-- ,T1.MOD_DATE -->
+              ,CASE WHEN T2.MENU_ID IS NULL THEN 'N'
+                    ELSE 'Y' 
+                END AUTH_YN
+              ,T2.REG_VIEW_DIVN_CD AS ASSIGNED_REG_VIEW_DIVN_CD
+          FROM SAD_MENU T1 
+          LEFT OUTER JOIN SAD_MENU_ASSIGN T2
+            ON T1.MENU_ID = T2.MENU_ID
+           AND T2.ROLE_ID = #role_id#
+         ORDER BY T1.MENU_DEPTH, T1.ORDER_SEQ
+    </select>    
+    
+    <delete id="deleteAdminMenuAssign">
+        /* ztadm202.deleteAdminMenuAssign */
+        DELETE 
+          FROM SAD_MENU_ASSIGN
+         WHERE ROLE_ID = #role_id# 
+    </delete>
+    
+    <insert id="insertAdminMenuAssign">
+        /* ztadm202.insertAdminMenuAssign */
+        INSERT INTO SAD_MENU_ASSIGN (
+            MENU_ID
+           ,ROLE_ID
+           ,REG_VIEW_DIVN_CD
+           ,REG_ID
+           <!-- ,REG_DATE -->
+           ,MOD_ID
+           <!-- ,MOD_DATE -->
+        ) VALUES (
+            #menu_id#
+           ,#role_id#
+           ,#reg_view_divn_cd#
+           ,#reg_id#
+           <!-- ,SYSDATE -->
+           ,#mod_id#
+           <!-- ,SYSDATE -->
+        )
+    </insert>
+
+</sqlMap>    
+
+
+
