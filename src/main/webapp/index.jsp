@@ -17,17 +17,32 @@ $(document).ready(function() {
 });
 
 function ajaxHttpRestCall(){
-	 $.ajax({
+	 /* $.ajax({
 	       // url: "http://rest-service.guides.spring.io/greeting"
 		 url: "http://localhost:9090/say/hello"  
 	    }).then(function(data) {
 	    	console.log(data);
 	    	console.log(data.id);
 	    	console.log(data.content);
-	    });
+	    }); */
+	 
+	   $.ajax({
+		   url: "http://localhost:9090/say/hello",
+           type: "GET",
+           dataType: 'json',
+           success: function(data){
+               alert(data);
+               alert(data.id);
+               alert(data.content);
+           },
+           error:function(){
+               $("#result").html('there is error while submit');
+           }  
+       });
 }
 </script>
 </head>
 <body>
+<div id="result"></div>
 </body>
 </html>
