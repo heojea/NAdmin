@@ -9,8 +9,23 @@
 <script type="text/javascript" src="/js/jquery/jquery-1.7.2.js"></script>
 <script type="text/javascript">
 $(document).ready(function() {
-    window.open("<c:url value='/zsys/zsysm101/main.do'/>", "_self");
+	
+	ajaxHttpRestCall();
+   
+	
+   //window.open("<c:url value='/zsys/zsysm101/main.do'/>", "_self");
 });
+
+function ajaxHttpRestCall(){
+	 $.ajax({
+	       // url: "http://rest-service.guides.spring.io/greeting"
+		 url: "http://localhost:9090/say/hello"
+	    }).then(function(data) {
+	    	console.log(data);
+	    	console.log(data.id);
+	    	console.log(data.content);
+	    });
+}
 </script>
 </head>
 <body>
