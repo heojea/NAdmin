@@ -21,6 +21,14 @@ function ajaxHttpRestCall(){
 	       // url: "http://rest-service.guides.spring.io/greeting"
 	       
 	       
+	       
+	       
+	       
+	       
+	       
+	       
+	       
+	       
 		 url: "http://localhost:9090/say/hello"  
 	    }).then(function(data) {
 	    	console.log(data);
