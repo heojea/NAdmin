@@ -10,35 +10,55 @@
 <script type="text/javascript">
 $(document).ready(function() {
 	
-	ajaxHttpRestCall();
+	//ajaxHttpRestCallGet();
    
-	
+	console.log("===================");
+	ajaxHttpRestCallPost();
    //window.open("<c:url value='/zsys/zsysm101/main.do'/>", "_self");
 });
 
-function ajaxHttpRestCall(){
-	 /* $.ajax({
-	       // url: "http://rest-service.guides.spring.io/greeting"
-		 url: "http://localhost:9090/say/hello"  
-	    }).then(function(data) {
-	    	console.log(data);
-	    	console.log(data.id);
-	    	console.log(data.content);
-	    }); */
-	 
+function ajaxHttpRestCallPost(){
+	  var data = {};
+	  data["aaa"] = 1;
+	  data["bbbb"] = 1;
+	  console.log(JSON.stringify(data));
+	
+	  $.ajax({
+          type: "post",
+          url: "http://localhost:9090/say/bye",
+          data: JSON.stringify(data),
+          contentType: "application/json; charset=utf-8",
+          crossDomain: true,
+          dataType: "json",
+          success: function (data, status, jqXHR) {
+
+              alert(data);
+          },
+
+          error: function (jqXHR, status) {
+              // error handler
+              console.log(jqXHR);
+              alert('fail' + status.code);
+          }
+       });
+}
+
+function ajaxHttpRestCallGet(){
 	   $.ajax({
 		   url: "http://localhost:9090/say/hello",
            type: "GET",
            dataType: 'json',
            success: function(data){
-               alert(data);
-               alert(data.id);
-               alert(data.content);
+               console.log(data);
+               console.log(data.id);
+               console.log(data.content);
            },
            error:function(){
                $("#result").html('there is error while submit');
            }  
        });
+	   
+	 
 }
 </script>
 </head>
