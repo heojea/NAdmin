@@ -63,6 +63,19 @@ function ajaxHttpRestCallGet(){
 </script>
 </head>
 <body>
-<div id="result"></div>
+<form name="LoginForm2" method="POST" onSubmit="return checkLoginForm2();">
+<table>
+<tr>
+<td>아이디</td>
+<td><input type="text" name="memberID"></td>
+<td><input type="checkbox" value=1 checkedname="SSL_Login" > 보안접속</td>
+</tr>
+<tr>
+<td>비밀번호</td>
+<td><input type="password" name="memberPW"></td>
+<td><input type="submit" name="Submit" value=" 로그인 "></td>
+</tr>
+</table>
+</form>
 </body>
 </html>
